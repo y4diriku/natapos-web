@@ -58,6 +58,8 @@ export default function WebDashboard() {
     trxCount: 0,
     profitEstimate: 0,
     activeShiftDrawer: 0,
+    activeShiftStatus: 'CLOSED',
+    activeCashier: '-',
   });
 
   const [financeSummary, setFinanceSummary] = useState({
@@ -220,7 +222,8 @@ export default function WebDashboard() {
 
         expectedDrawer = modalAwal + cashSales + cashIn - cashOut;
       } else {
-        expectedDrawer = Number(latestShift?.actual_cash || latestShift?.expected_cash || 0);
+        // JIKA SHIFT CLOSED -> KAS LACI AKTIF ADALAH RP 0 (TIDAK ADA KASIR BERJAGA)
+        expectedDrawer = 0;
       }
 
       // Hitung Tren 7 Hari Terakhir
@@ -258,6 +261,8 @@ export default function WebDashboard() {
         trxCount: allTrxToday.length,
         profitEstimate: omzet - cost,
         activeShiftDrawer: expectedDrawer,
+        activeShiftStatus: latestShift?.status === 'OPEN' ? 'OPEN' : 'CLOSED',
+        activeCashier: latestShift?.cashier_name || 'Kasir',
       });
 
       if (financePeriod === 'month') {
@@ -670,9 +675,20 @@ export default function WebDashboard() {
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-slate-500 uppercase">Kas Laci Kasir (Fisik)</p>
-                  <h3 className="text-2xl font-black text-slate-900 mt-1">Rp {stats.activeShiftDrawer.toLocaleString()}</h3>
+                  <h3 className={`text-2xl font-black mt-1 ${stats.activeShiftStatus === 'OPEN' ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {stats.activeShiftStatus === 'OPEN' ? `Rp ${stats.activeShiftDrawer.toLocaleString()}` : 'Rp 0'}
+                  </h3>
+                  <p className="text-[11px] font-bold mt-0.5">
+                    {stats.activeShiftStatus === 'OPEN' ? (
+                      <span className="text-emerald-600">🟢 Shift Buka ({stats.activeCashier})</span>
+                    ) : (
+                      <span className="text-slate-400">🔴 Shift Tutup (Standby)</span>
+                    )}
+                  </p>
                 </div>
-                <div className="bg-amber-50 text-amber-600 p-3 rounded-xl"><Clock className="w-6 h-6" /></div>
+                <div className={`p-3 rounded-xl ${stats.activeShiftStatus === 'OPEN' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
+                  <Clock className="w-6 h-6" />
+                </div>
               </div>
             </div>
 
