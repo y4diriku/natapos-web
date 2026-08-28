@@ -246,7 +246,7 @@ export default function SuperadminPage() {
 
   const copyStoreLink = (code: string, id: string) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const link = `${origin}/?store=${code}`;
+    const link = `${origin}/${code}`;
     navigator.clipboard.writeText(link);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2500);
@@ -486,7 +486,7 @@ export default function SuperadminPage() {
                             Link
                           </button>
                           <a
-                            href={`/?store=${s.store_code}`}
+                            href={`/${s.store_code}`}
                             target="_blank"
                             className="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
                             title="Buka Dashboard Toko Ini"
@@ -593,7 +593,7 @@ export default function SuperadminPage() {
                     onChange={(e) => setStoreCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
                     className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500 uppercase"
                   />
-                  <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/?store={storeCode || 'KODE'}</code></p>
+                  <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/{storeCode || 'KODE'}</code></p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -699,7 +699,7 @@ export default function SuperadminPage() {
                   onChange={(e) => setEditStoreCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500 uppercase"
                 />
-                <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/?store={editStoreCode}</code></p>
+                <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/{editStoreCode}</code></p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
