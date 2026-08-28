@@ -233,35 +233,35 @@ export default function WebDashboard() {
   const fetchFinanceData = async (period: string) => {
     if (!storeId) return;
     try {
-      let query = supabase.from('cloud_transactions').select('total_amount, total_cost, created_at').eq('store_id', storeId);
+      let trxQuery = supabase.from('cloud_transactions').select('total_amount, total_cost, created_at').eq('store_id', storeId);
+      let expQuery = supabase.from('cloud_expenses').select('amount, category, created_at').eq('store_id', storeId).neq('category', 'RESTOCK').neq('category', 'KAS_MASUK').neq('category', 'TAMBAH_MODAL');
+      
       const now = new Date();
+      let startFilter = '';
 
       if (period === 'today') {
         const todayStr = now.toISOString().split('T')[0];
-        query = query.gte('created_at', `${todayStr} 00:00:00`);
+        startFilter = `${todayStr} 00:00:00`;
       } else if (period === '7days') {
-        const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7)).toISOString();
-        query = query.gte('created_at', `${sevenDaysAgo} 00:00:00`);
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        startFilter = `${d.toISOString().split('T')[0]} 00:00:00`;
       } else if (period === 'month') {
-        const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01 00:00:00`;
-        query = query.gte('created_at', monthStart);
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        startFilter = `${y}-${m}-01 00:00:00`;
       }
 
-      const { data: trxList } = await query;
+      if (startFilter) {
+        trxQuery = trxQuery.gte('created_at', startFilter);
+        expQuery = expQuery.gte('created_at', startFilter);
+      }
+
+      const [{ data: trxList }, { data: expList }] = await Promise.all([trxQuery, expQuery]);
+
       const rev = (trxList || []).reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
       const cogs = (trxList || []).reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
       const gross = rev - cogs;
-
-      let expQuery = supabase.from('cloud_expenses').select('amount, category, created_at').eq('store_id', storeId).neq('category', 'RESTOCK').neq('category', 'KAS_MASUK').neq('category', 'TAMBAH_MODAL');
-      if (period === 'today') {
-        const todayStr = new Date().toISOString().split('T')[0];
-        expQuery = expQuery.gte('created_at', `${todayStr} 00:00:00`);
-      } else if (period === 'month') {
-        const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01 00:00:00`;
-        expQuery = expQuery.gte('created_at', monthStart);
-      }
-
-      const { data: expList } = await expQuery;
       const ops = (expList || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
 
       setFinanceSummary({
@@ -272,7 +272,7 @@ export default function WebDashboard() {
         netProfit: gross - ops,
       });
     } catch (e) {
-      console.error(e);
+      console.error('Finance query error:', e);
     }
   };
 
