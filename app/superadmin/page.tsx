@@ -19,10 +19,11 @@ import {
   Key,
   Calendar,
   CheckCircle2,
-  Users
+  Users,
+  Edit3,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
-
-// Password Master divalidasi via Server RPC
 
 export default function SuperadminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,7 +35,7 @@ export default function SuperadminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Modal State
+  // Modal Tambah Toko
   const [showAddModal, setShowAddModal] = useState(false);
   const [storeName, setStoreName] = useState('');
   const [storeCode, setStoreCode] = useState('');
@@ -43,6 +44,17 @@ export default function SuperadminPage() {
   const [pin, setPin] = useState('1234');
   const [authMode, setAuthMode] = useState<'PIN' | 'EMAIL'>('PIN');
   const [createdSuccess, setCreatedSuccess] = useState<any>(null);
+
+  // Modal Edit Toko
+  const [editingStore, setEditingStore] = useState<any | null>(null);
+  const [editStoreName, setEditStoreName] = useState('');
+  const [editStoreCode, setEditStoreCode] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editPin, setEditPin] = useState('');
+  const [editAuthMode, setEditAuthMode] = useState<'PIN' | 'EMAIL'>('PIN');
+  const [editIsActive, setEditIsActive] = useState<boolean>(true);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   // Fetch All Stores
   const fetchAllStores = async () => {
@@ -88,7 +100,6 @@ export default function SuperadminPage() {
     }
   };
 
-  // Auto-generate store code slug saat ketik nama toko
   const handleNameChange = (val: string) => {
     setStoreName(val);
     const slug = val
@@ -97,6 +108,10 @@ export default function SuperadminPage() {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
     setStoreCode(slug);
+  };
+
+  const handleEditNameChange = (val: string) => {
+    setEditStoreName(val);
   };
 
   // Submit Toko Baru
@@ -136,7 +151,99 @@ export default function SuperadminPage() {
     }
   };
 
-  // Copy Link Toko
+  // Open Edit Modal
+  const openEditModal = (store: any) => {
+    setEditingStore(store);
+    setEditStoreName(store.store_name || '');
+    setEditStoreCode(store.store_code || '');
+    setEditPhone(store.phone || '');
+    setEditAddress(store.address || '');
+    setEditPin(store.pin || '1234');
+    setEditAuthMode(store.auth_mode === 'EMAIL' ? 'EMAIL' : 'PIN');
+    setEditIsActive(store.is_active !== false);
+  };
+
+  // Save Edit Store
+  const handleUpdateStore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStore || !editStoreName || !editStoreCode) {
+      alert('Nama Toko dan Store Code wajib diisi!');
+      return;
+    }
+
+    try {
+      const payload = {
+        store_name: editStoreName.trim(),
+        store_code: editStoreCode.trim().toUpperCase(),
+        phone: editPhone.trim() || '-',
+        address: editAddress.trim() || '-',
+        pin: editPin.trim() || '1234',
+        auth_mode: editAuthMode,
+        is_active: editIsActive,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('stores')
+        .update(payload)
+        .eq('id', editingStore.id);
+
+      if (error) {
+        alert('Gagal mengupdate toko: ' + error.message);
+        return;
+      }
+
+      setSaveSuccessMsg(`Toko '${editStoreName}' berhasil diperbarui!`);
+      setEditingStore(null);
+      fetchAllStores();
+      setTimeout(() => setSaveSuccessMsg(''), 4000);
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
+  // Hapus Toko Permanen (Cascade Clean Database)
+  const handleDeleteStore = async (store: any) => {
+    const confirmMsg = `⚠️ PERINGATAN HAPUS PERMANEN!\n\nApakah Anda yakin ingin menghapus toko '${store.store_name}' (${store.store_code})?\n\nSeluruh data transaksi, produk, shift, dan keuangan cloud toko ini akan dihapus total.`;
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    const doubleCheck = prompt(`Ketik '${store.store_code}' untuk konfirmasi penghapusan permanen:`);
+    if (doubleCheck !== store.store_code) {
+      alert('Penghapusan dibatalkan. Kode toko tidak cocok.');
+      return;
+    }
+
+    try {
+      // Bersihkan data transaksi dan entitas anak
+      await Promise.all([
+        supabase.from('cloud_transaction_items').delete().eq('store_id', store.id),
+        supabase.from('cloud_transactions').delete().eq('store_id', store.id),
+        supabase.from('cloud_products').delete().eq('store_id', store.id),
+        supabase.from('cloud_product_units').delete().eq('store_id', store.id),
+        supabase.from('cloud_shift_logs').delete().eq('store_id', store.id),
+        supabase.from('cloud_expenses').delete().eq('store_id', store.id),
+        supabase.from('cloud_orders_jasa').delete().eq('store_id', store.id),
+        supabase.from('cloud_customers').delete().eq('store_id', store.id),
+        supabase.from('cloud_services').delete().eq('store_id', store.id),
+      ]);
+
+      // Hapus data toko di master tabel stores
+      const { error } = await supabase.from('stores').delete().eq('id', store.id);
+
+      if (error) {
+        alert('Gagal menghapus toko: ' + error.message);
+        return;
+      }
+
+      alert(`Toko '${store.store_name}' berhasil dihapus permanen dari database.`);
+      fetchAllStores();
+    } catch (err: any) {
+      alert('Error saat menghapus: ' + err.message);
+    }
+  };
+
   const copyStoreLink = (code: string, id: string) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const link = `${origin}/?store=${code}`;
@@ -145,14 +252,12 @@ export default function SuperadminPage() {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // Copy UUID
   const copyUUID = (uuid: string) => {
     navigator.clipboard.writeText(uuid);
     setCopiedId(uuid);
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // 1. SCREEN LOGIN MASTER FOUNDER
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
@@ -186,7 +291,6 @@ export default function SuperadminPage() {
     );
   }
 
-  // Filter Toko
   const filteredStores = stores.filter(
     (s) =>
       s.store_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -232,6 +336,13 @@ export default function SuperadminPage() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto p-6 space-y-6">
+        {saveSuccessMsg && (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            {saveSuccessMsg}
+          </div>
+        )}
+
         {/* Top Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl flex items-center justify-between">
@@ -299,18 +410,19 @@ export default function SuperadminPage() {
               <thead className="bg-slate-900 text-slate-400 font-bold border-b border-slate-700">
                 <tr>
                   <th className="px-5 py-4">Toko / Brand</th>
-                  <th className="px-4 py-4">Kode Toko</th>
+                  <th className="px-4 py-4">Kode Toko (URL)</th>
                   <th className="px-4 py-4">Kunci Store ID (UUID)</th>
                   <th className="px-4 py-4">PIN Akses</th>
                   <th className="px-4 py-4">Mode Login</th>
+                  <th className="px-4 py-4">Status</th>
                   <th className="px-4 py-4">Kontak / Alamat</th>
-                  <th className="px-5 py-4 text-center">Aksi Cepat</th>
+                  <th className="px-5 py-4 text-center">Aksi Manajemen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/60 font-medium">
                 {filteredStores.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-500">
+                    <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
                       Tidak ada toko klien yang ditemukan.
                     </td>
                   </tr>
@@ -352,32 +464,49 @@ export default function SuperadminPage() {
                           {s.auth_mode || 'PIN'}
                         </span>
                       </td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          s.is_active !== false ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        }`}>
+                          {s.is_active !== false ? 'AKTIF' : 'NONAKTIF'}
+                        </span>
+                      </td>
                       <td className="px-4 py-4 text-slate-300">
                         <div>{s.phone || '-'}</div>
                         <div className="text-[11px] text-slate-500 truncate max-w-[150px]">{s.address || '-'}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
                           <button
                             onClick={() => copyStoreLink(s.store_code, s.id)}
-                            className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition"
+                            className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
                             title="Salin Link Dashboard Klien"
                           >
-                            {copiedId === s.id ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
-                            Salin Link
+                            {copiedId === s.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            Link
                           </button>
                           <a
                             href={`/?store=${s.store_code}`}
                             target="_blank"
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition"
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
                             title="Buka Dashboard Toko Ini"
                           >
-                            <ExternalLink className="w-3.5 h-3.5" /> Buka
+                            <ExternalLink className="w-3 h-3" /> Buka
                           </a>
+                          <button
+                            onClick={() => openEditModal(s)}
+                            className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
+                            title="Edit Data / Kode Toko"
+                          >
+                            <Edit3 className="w-3 h-3" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStore(s)}
+                            className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
+                            title="Hapus Toko Permanen"
+                          >
+                            <Trash2 className="w-3 h-3" /> Hapus
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -389,7 +518,7 @@ export default function SuperadminPage() {
         </div>
       </main>
 
-      {/* MODAL TAMBAH TOKO BARU */}
+      {/* MODAL 1: TAMBAH TOKO BARU */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl">
@@ -398,10 +527,7 @@ export default function SuperadminPage() {
                 <Store className="w-5 h-5 text-indigo-400" />
                 Daftarkan Toko Klien Baru
               </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
-              >
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white p-1 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -446,7 +572,7 @@ export default function SuperadminPage() {
             ) : (
               <form onSubmit={handleCreateStore} className="space-y-3 text-xs">
                 <div>
-                  <label className="font-bold text-slate-300">Nama Toko Klien:</label>
+                  <label className="font-bold text-slate-300">Nama Toko / Brand:</label>
                   <input
                     type="text"
                     required
@@ -465,14 +591,14 @@ export default function SuperadminPage() {
                     placeholder="BERKAH-JAYA"
                     value={storeCode}
                     onChange={(e) => setStoreCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500 uppercase"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/?store={storeCode || 'KODE'}</code></p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="font-bold text-slate-300">PIN Akses (4 Digit):</label>
+                    <label className="font-bold text-slate-300">PIN Akses (4-6 Digit):</label>
                     <input
                       type="text"
                       maxLength={6}
@@ -534,6 +660,121 @@ export default function SuperadminPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: EDIT DATA TOKO / KODE TOKO */}
+      {editingStore && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+              <h3 className="font-extrabold text-base text-white flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-amber-400" />
+                Edit Data Toko / Kode Toko
+              </h3>
+              <button onClick={() => setEditingStore(null)} className="text-slate-400 hover:text-white p-1 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateStore} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-300">Nama Toko / Brand:</label>
+                <input
+                  type="text"
+                  required
+                  value={editStoreName}
+                  onChange={(e) => handleEditNameChange(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300">Store Code (URL Kustom):</label>
+                <input
+                  type="text"
+                  required
+                  value={editStoreCode}
+                  onChange={(e) => setEditStoreCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500 uppercase"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Link Klien: <code>natapos.vercel.app/?store={editStoreCode}</code></p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-300">PIN Akses Toko:</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    required
+                    value={editPin}
+                    onChange={(e) => setEditPin(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-mono font-bold text-center focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-300">Status Toko:</label>
+                  <select
+                    value={editIsActive ? 'AKTIF' : 'NONAKTIF'}
+                    onChange={(e) => setEditIsActive(e.target.value === 'AKTIF')}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-bold focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="AKTIF">🟢 Aktif</option>
+                    <option value="NONAKTIF">🔴 Nonaktif</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300">Mode Proteksi Login:</label>
+                <select
+                  value={editAuthMode}
+                  onChange={(e) => setEditAuthMode(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-bold focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="PIN">Proteksi PIN Toko</option>
+                  <option value="EMAIL">Login Email & Password</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300">No. WhatsApp Klien:</label>
+                <input
+                  type="text"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300">Alamat Toko:</label>
+                <input
+                  type="text"
+                  value={editAddress}
+                  onChange={(e) => setEditAddress(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingStore(null)}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold shadow-lg transition"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
