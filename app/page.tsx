@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import { 
   AlertTriangle,
   ArrowDownRight,
@@ -215,8 +216,8 @@ export default function WebDashboard() {
       }
 
       const allTrxToday = trxTodayRes.data || [];
-      const omzet = allTrxToday.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
-      const cost = allTrxToday.reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
+      const omzet = allTrxToday.reduce((acc: number, curr: any) => acc + Number(curr.total_amount || 0), 0);
+      const cost = allTrxToday.reduce((acc: number, curr: any) => acc + Number(curr.total_cost || 0), 0);
 
       const shiftList = shiftRes.data || [];
       const latestShift = shiftList[0];
@@ -310,9 +311,9 @@ export default function WebDashboard() {
       });
 
       if (financePeriod === 'month') {
-        const rev = (monthTrxRes.data || []).reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
-        const cogs = (monthTrxRes.data || []).reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
-        const ops = (monthExpRes.data || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+        const rev = (monthTrxRes.data || []).reduce((acc: number, curr: any) => acc + Number(curr.total_amount || 0), 0);
+        const cogs = (monthTrxRes.data || []).reduce((acc: number, curr: any) => acc + Number(curr.total_cost || 0), 0);
+        const ops = (monthExpRes.data || []).reduce((acc: number, curr: any) => acc + Number(curr.amount || 0), 0);
         setFinanceSummary({
           revenue: rev,
           cogs: cogs,
@@ -365,9 +366,9 @@ export default function WebDashboard() {
 
       const [{ data: trxList }, { data: expList }] = await Promise.all([trxQuery, expQuery]);
 
-      const rev = (trxList || []).reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
-      const cogs = (trxList || []).reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
-      const ops = (expList || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+      const rev = (trxList || []).reduce((acc: number, curr: any) => acc + Number(curr.total_amount || 0), 0);
+      const cogs = (trxList || []).reduce((acc: number, curr: any) => acc + Number(curr.total_cost || 0), 0);
+      const ops = (expList || []).reduce((acc: number, curr: any) => acc + Number(curr.amount || 0), 0);
 
       setFinanceSummary({
         revenue: rev,
@@ -565,7 +566,7 @@ export default function WebDashboard() {
     return matchSearch && matchLowStock;
   });
 
-  const maxTrendAmount = Math.max(...weeklyTrend.map(t => t.amount), 1000);
+  const maxTrendAmount = Math.max(...weeklyTrend.map((t: any) => t.amount), 1000);
 
   // =========================================================================
   // VIEW 1: LANDING PAGE RESMI (JIKA TANPA PARAMETER TOKO)
@@ -1051,7 +1052,7 @@ export default function WebDashboard() {
               </div>
 
               <div className="grid grid-cols-7 gap-2 pt-6 items-end h-44">
-                {weeklyTrend.map((item, idx) => {
+                {weeklyTrend.map((item: any, idx: number) => {
                   const heightPercent = Math.max(8, Math.round((item.amount / maxTrendAmount) * 100));
                   const isToday = idx === weeklyTrend.length - 1;
                   return (
@@ -1470,7 +1471,7 @@ export default function WebDashboard() {
                   ) : receiptItems.length === 0 ? (
                     <tr><td colSpan={4} className="px-3 py-6 text-center text-slate-400">Tidak ada rincian item tersimpan.</td></tr>
                   ) : (
-                    receiptItems.map((item, idx) => (
+                    receiptItems.map((item: any, idx: number) => (
                       <tr key={idx} className="hover:bg-slate-50">
                         <td className="px-3 py-2 font-semibold text-slate-800">{item.product_name}</td>
                         <td className="px-3 py-2 text-center text-slate-600">{item.quantity} {item.unit_name || 'PCS'}</td>
