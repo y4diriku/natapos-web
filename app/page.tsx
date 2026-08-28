@@ -13,22 +13,34 @@ import {
   Check, 
   Layers, 
   CheckCircle2, 
-  PlusCircle,
-  DollarSign,
-  PieChart,
-  ArrowDownRight,
-  ArrowUpRight,
-  X,
-  Lock,
-  Mail,
-  KeyRound,
-  Store,
-  BookOpen,
-  Calendar,
-  Eye,
-  BarChart2,
-  FileText,
-  AlertTriangle
+  PlusCircle, 
+  DollarSign, 
+  PieChart, 
+  ArrowDownRight, 
+  ArrowUpRight, 
+  X, 
+  Lock, 
+  Mail, 
+  KeyRound, 
+  Store, 
+  BookOpen, 
+  Calendar, 
+  Eye, 
+  BarChart2, 
+  FileText, 
+  AlertTriangle,
+  Zap,
+  Printer,
+  ShieldCheck,
+  Smartphone,
+  ChevronRight,
+  ArrowRight,
+  Sparkles,
+  MessageCircle,
+  Copy,
+  Sliders,
+  CheckCircle,
+  ExternalLink
 } from 'lucide-react';
 
 export default function WebDashboard() {
@@ -36,6 +48,12 @@ export default function WebDashboard() {
   const [storeInfo, setStoreInfo] = useState<any>(null);
   const [isDesktopOnline, setIsDesktopOnline] = useState<boolean>(false);
   const [loadingStore, setLoadingStore] = useState<boolean>(true);
+  const [hasStoreParam, setHasStoreParam] = useState<boolean>(false);
+
+  // Store Selector Modal on Landing Page
+  const [showStoreModal, setShowStoreModal] = useState<boolean>(false);
+  const [storeCodeInput, setStoreCodeInput] = useState<string>('');
+  const [storeModalError, setStoreModalError] = useState<string>('');
 
   // Auth State
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
@@ -105,44 +123,55 @@ export default function WebDashboard() {
   const [receiptItems, setReceiptItems] = useState<any[]>([]);
   const [loadingReceiptItems, setLoadingReceiptItems] = useState(false);
 
-  // 1. Resolve Store Info
+  // 1. Resolve Store Info & Detect Landing Page Mode
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const storeParam = params.get('store');
     const idParam = params.get('id') || params.get('store_id');
 
-    const resolveStore = async () => {
-      setLoadingStore(true);
-      try {
-        let storeData: any = null;
-        if (storeParam) {
-          const { data } = await supabase.from('stores').select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at').eq('store_code', storeParam.toUpperCase()).single();
-          storeData = data;
-        }
-        if (!storeData) {
-          const targetId = idParam || process.env.NEXT_PUBLIC_DEFAULT_STORE_ID || '';
-          if (targetId) {
-            const { data } = await supabase.from('stores').select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at').eq('id', targetId).single();
+    if (storeParam || idParam) {
+      setHasStoreParam(true);
+      const resolveStore = async () => {
+        setLoadingStore(true);
+        try {
+          let storeData: any = null;
+          if (storeParam) {
+            const { data } = await supabase
+              .from('stores')
+              .select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at')
+              .eq('store_code', storeParam.toUpperCase())
+              .single();
             storeData = data;
           }
+          if (!storeData && idParam) {
+            const { data } = await supabase
+              .from('stores')
+              .select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at')
+              .eq('id', idParam)
+              .single();
+            storeData = data;
+          }
+          if (storeData) {
+            setStoreId(storeData.id);
+            setStoreInfo(storeData);
+            setAuthView(storeData.auth_mode === 'EMAIL' ? 'EMAIL' : 'PIN');
+            const savedSession = localStorage.getItem(`natapos_unlocked_${storeData.id}`);
+            if (savedSession === 'true') setIsUnlocked(true);
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoadingStore(false);
         }
-        if (storeData) {
-          setStoreId(storeData.id);
-          setStoreInfo(storeData);
-          setAuthView(storeData.auth_mode === 'EMAIL' ? 'EMAIL' : 'PIN');
-          const savedSession = localStorage.getItem(`natapos_unlocked_${storeData.id}`);
-          if (savedSession === 'true') setIsUnlocked(true);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingStore(false);
-      }
-    };
-    resolveStore();
+      };
+      resolveStore();
+    } else {
+      setHasStoreParam(false);
+      setLoadingStore(false);
+    }
   }, []);
 
-  // 2. Fetch Data Secara Paralel (Serentak & Cepat)
+  // 2. Fetch Data Paralel (Dashboard Mode)
   const fetchData = async () => {
     if (!storeId || !isUnlocked) return;
     try {
@@ -150,7 +179,6 @@ export default function WebDashboard() {
       const now = new Date();
       const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01 00:00:00`;
 
-      // 7 Days Trend Range
       const d7 = new Date();
       d7.setDate(d7.getDate() - 6);
       const sevenDaysAgo = `${d7.toISOString().split('T')[0]} 00:00:00`;
@@ -191,8 +219,8 @@ export default function WebDashboard() {
 
       const shiftList = shiftRes.data || [];
       const latestShift = shiftList[0];
-      
-      // HITUNG KAS LACI LIVE (TUNAI) DAN NON-TUNAI (QRIS/BANK) SECARA AKURAT
+
+      // Hitung Kas Laci Live & Non-Tunai
       let expectedDrawer = 0;
       let nonCashShiftTotal = 0;
 
@@ -225,7 +253,6 @@ export default function WebDashboard() {
 
         nonCashShiftTotal = nonCashSales;
 
-        // Kas Masuk & Keluar Kas Kecil Laci
         const expList = expRes.data || [];
         const cashIn = expList
           .filter((e: any) => Number(e.is_cash) === 1 && ['KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category) && (!shiftStart || String(e.created_at) >= shiftStart))
@@ -300,7 +327,7 @@ export default function WebDashboard() {
     }
   };
 
-  // 3. Fetch Laporan Keuangan Sesuai Filter
+  // 3. Fetch Laporan Keuangan
   const fetchFinanceData = async (period: string, customStart = customStartDate, customEnd = customEndDate) => {
     if (!storeId) return;
     try {
@@ -312,8 +339,7 @@ export default function WebDashboard() {
       let endFilter = '';
 
       if (period === 'today') {
-        const todayStr = now.toISOString().split('T')[0];
-        startFilter = `${todayStr} 00:00:00`;
+        startFilter = `${now.toISOString().split('T')[0]} 00:00:00`;
       } else if (period === '7days') {
         const d = new Date();
         d.setDate(d.getDate() - 6);
@@ -354,7 +380,6 @@ export default function WebDashboard() {
     }
   };
 
-  // 4. Modal Rincian Struk Item
   const handleOpenReceiptDetail = async (trx: any) => {
     setSelectedReceipt(trx);
     setLoadingReceiptItems(true);
@@ -410,26 +435,20 @@ export default function WebDashboard() {
     e.preventDefault();
     setAuthError('');
     try {
-      // Verifikasi aman via Supabase RPC (Server-Side)
       const { data: isValid, error } = await supabase.rpc('verify_store_pin', {
         p_store_id: storeId,
         p_pin: pinInput.trim()
       });
 
-      if (error) {
-        setAuthError('Terjadi kesalahan verifikasi.');
-        return;
-      }
-
-      if (isValid === true) {
+      if (error || isValid !== true) {
+        setAuthError('PIN Toko salah! Silakan coba lagi.');
+        setPinInput('');
+      } else {
         setIsUnlocked(true);
         setAuthError('');
         if (rememberMe) localStorage.setItem(`natapos_unlocked_${storeId}`, 'true');
-      } else {
-        setAuthError('PIN Toko salah! Silakan coba lagi.');
-        setPinInput('');
       }
-    } catch (err: any) {
+    } catch (err) {
       setAuthError('Gagal memverifikasi PIN.');
     }
   };
@@ -453,6 +472,16 @@ export default function WebDashboard() {
     localStorage.removeItem(`natapos_unlocked_${storeId}`);
     setIsUnlocked(false);
     setPinInput('');
+  };
+
+  const handleOpenSpecificStore = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = storeCodeInput.trim().toUpperCase();
+    if (!code) {
+      setStoreModalError('Ketik kode toko Anda!');
+      return;
+    }
+    window.location.href = `/?store=${encodeURIComponent(code)}`;
   };
 
   const formatTimeDisplay = (dateStr: string) => {
@@ -535,17 +564,276 @@ export default function WebDashboard() {
     return matchSearch && matchLowStock;
   });
 
-  // Max value for visual chart height calculation
   const maxTrendAmount = Math.max(...weeklyTrend.map(t => t.amount), 1000);
 
+  // =========================================================================
+  // VIEW 1: LANDING PAGE RESMI (JIKA TANPA PARAMETER TOKO)
+  // =========================================================================
+  if (!hasStoreParam) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="NATA POS" className="h-9 w-auto object-contain rounded" onError={(e: any) => { e.target.style.display = 'none'; }} />
+              <div>
+                <div className="font-black text-lg text-white flex items-center gap-2 tracking-tight">
+                  NATA POS <span className="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded">PRO</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-medium">Smart Hybrid POS & Cloud Services</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a href="/docs" className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                Panduan
+              </a>
+
+              <button
+                onClick={() => { setStoreModalError(''); setShowStoreModal(true); }}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30"
+              >
+                <KeyRound className="w-4 h-4" />
+                Masuk Dashboard Toko
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="relative overflow-hidden pt-16 pb-20 px-4 sm:px-8 border-b border-slate-800/80">
+          <div className="absolute inset-0 bg-radial-gradient from-indigo-900/20 via-transparent to-transparent pointer-events-none"></div>
+          <div className="max-w-5xl mx-auto text-center space-y-6">
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-3.5 py-1.5 rounded-full text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              Sistem Kasir Hybrid 2-in-1: Ritel, Fotokopi & Percetakan
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+              Satu Aplikasi POS untuk <br />
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-emerald-400 bg-clip-text text-transparent">
+                Penjualan Barang & Order Jasa
+              </span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+              Kasir cepat <i>offline-first</i> yang dirancang khusus untuk kemajuan UMKM: scan barcode kilat, hitung order jasa & fotokopi, QRIS dinamis otomatis, serta pantau omzet real-time dari smartphone.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              <button
+                onClick={() => { setStoreModalError(''); setShowStoreModal(true); }}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm transition shadow-xl shadow-indigo-600/30"
+              >
+                Buka Dashboard Toko Saya <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <a
+                href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20tertarik%20dengan%20software%20kasir%20NATA%20POS%20PRO."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold px-6 py-3.5 rounded-2xl text-sm transition"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-400" />
+                Konsultasi & Pasang di Toko
+              </a>
+            </div>
+
+            {/* 3 Pillars */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-12 text-left">
+              <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-sm text-white">100% Tetap Berjalan saat Offline</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Transaksi kasir, cetak printer, dan scan barcode tetap berjalan lancar meski internet toko sedang terputus.</p>
+              </div>
+
+              <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-sm text-white">QRIS Dinamis (Nominal Terkunci)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Nominal pembayaran langsung muncul terkunci di HP pembeli tanpa pembeli perlu mengetik manual.</p>
+              </div>
+
+              <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-sm text-white">Cloud Sync Instan (&lt; 0.2 Detik)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Begitu kasir menekan tombol Bayar, angka omzet dan kas laci langsung ter-update seketika di HP pemilik toko.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Business Segment Section */}
+        <section className="py-16 px-4 sm:px-8 border-b border-slate-800/80">
+          <div className="max-w-6xl mx-auto space-y-10">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Fleksibel & Teruji</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Cocok untuk Berbagai Jenis Usaha</h2>
+              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">Satu sistem yang mampu beradaptasi dengan karakter bisnis ritel maupun layanan jasa kustom.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                <div className="text-2xl">🖨️</div>
+                <h3 className="font-bold text-sm text-white">Fotokopi & Toko ATK</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Hitung print per lembar (A4, F4, A3), jilid, laminating, dan penjualan ritel alat tulis dalam 1 nota struk.</p>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                <div className="text-2xl">🎨</div>
+                <h3 className="font-bold text-sm text-white">Digital Printing & Sablon</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Kelola pesanan spanduk meteran, banner, stiker, uang muka (DP), deadline selesai, dan tiket SPK operator workshop.</p>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                <div className="text-2xl">🛒</div>
+                <h3 className="font-bold text-sm text-white">Minimarket & Retail Toko</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Scan barcode perkalian cepat (10*barang), multi-satuan Dus/Pcs/KG, dan peringatan stok fisik menipis.</p>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                <div className="text-2xl">🛠️</div>
+                <h3 className="font-bold text-sm text-white">Jasa & Custom Order</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Laundry, konveksi, servis elektronik, atau usaha hybrid lainnya dengan pencatatan DP & sisa tagihan yang rapi.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature Highlights Matrix */}
+        <section className="py-16 px-4 sm:px-8">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Keunggulan Operasional</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Solusi Lengkap dari Kasir hingga Owner</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs">
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Kas Laci Anti-Bocor</div>
+                <p className="text-slate-400">Rekonsiliasi otomatis saat tutup shift (Modal + Penjualan Tunai + Kas Masuk - Kas Keluar). Rekap langsung dikirim ke WhatsApp Owner.</p>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Multi-Satuan & HPP Otomatis</div>
+                <p className="text-slate-400">Jual eceran PCS atau grosir DUS/PACK secara otomatis memotong stok yang sama dengan kalkulasi HPP laba bersih akurat.</p>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> WhatsApp Gateway Otomatis</div>
+                <p className="text-slate-400">Kirim nota digital, invoice penawaran, dan notifikasi pesanan selesai langsung ke WhatsApp pelanggan hanya dengan 1 klik.</p>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Dashboard Analitik Real-Time</div>
+                <p className="text-slate-400">Pantau omzet, laba kotor, rincian struk belanjaan, hingga status mesin kasir sedang online atau offline langsung dari smartphone.</p>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Auto-Backup & Keamanan Tinggi</div>
+                <p className="text-slate-400">Database lokal otomatis dicadangkan setiap hari dengan proteksi anti-manipulasi jam komputer (Anti-Rollback Protection).</p>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
+                <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tanpa Beban Langganan Mencekik</div>
+                <p className="text-slate-400">Gunakan sistem secara mandiri untuk toko Anda tanpa takut data terkunci saat masa langganan habis.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer CTA */}
+        <footer className="border-t border-slate-800 py-12 px-4 sm:px-8 text-center text-xs text-slate-500 space-y-4">
+          <div className="max-w-xl mx-auto space-y-3">
+            <h3 className="text-lg font-bold text-white">Siap Meningkatkan Kualitas Transaksi Toko Anda?</h3>
+            <p className="text-slate-400">Hubungi tim pengembang NATA POS untuk informasi instalasi dan konsultasi gratis.</p>
+            <a
+              href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20ingin%20jadwalkan%20pemasangan%20sistem%20POS."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
+            >
+              <MessageCircle className="w-4 h-4" /> Hubungi Kami di WhatsApp
+            </a>
+          </div>
+          <p className="pt-6 text-[11px] text-slate-600">© 2026 NATA POS PRO. All rights reserved.</p>
+        </footer>
+
+        {/* MODAL: INPUT KODE TOKO UNTUK MASUK KE DASHBOARD */}
+        {showStoreModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+              <div className="w-12 h-12 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-2xl flex items-center justify-center mx-auto">
+                <Store className="w-6 h-6" />
+              </div>
+
+              <div>
+                <h3 className="font-extrabold text-base text-white">Masuk Dashboard Toko</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Masukkan Kode Toko unik Anda untuk membuka dashboard.</p>
+              </div>
+
+              <form onSubmit={handleOpenSpecificStore} className="space-y-3 text-xs text-left">
+                <div>
+                  <label className="font-bold text-slate-300">Kode Toko Anda:</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: TOKO-01 / BERKAH"
+                    value={storeCodeInput}
+                    onChange={(e) => setStoreCodeInput(e.target.value.toUpperCase())}
+                    className="w-full px-3.5 py-3 bg-slate-950 border border-slate-700 rounded-xl mt-1 text-white font-mono font-bold text-center text-sm focus:outline-none focus:border-indigo-500 uppercase"
+                    autoFocus
+                  />
+                </div>
+
+                {storeModalError && <p className="text-xs text-rose-400 font-bold text-center">{storeModalError}</p>}
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowStoreModal(false)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30"
+                  >
+                    Buka Dashboard
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW 2: HALAMAN KUNCI PIN / LOGIN EMAIL (JIKA BUKA TOKO TERTENTU)
+  // =========================================================================
   if (!loadingStore && !storeInfo) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-8 text-center text-white">
-          <Store className="w-12 h-12 text-rose-500 mx-auto mb-3" />
-          <h2 className="text-lg font-bold">Toko Tidak Ditemukan</h2>
-          <p className="text-xs text-slate-400 mt-1 mb-6">Periksa kembali link atau parameter kode toko Anda.</p>
-          <a href="/superadmin" className="text-xs text-indigo-400 font-bold hover:underline">Buka Portal Superadmin &rarr;</a>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-8 text-center text-white space-y-4">
+          <Store className="w-12 h-12 text-rose-500 mx-auto" />
+          <div>
+            <h2 className="text-lg font-bold">Toko Tidak Ditemukan</h2>
+            <p className="text-xs text-slate-400 mt-1">Periksa kembali link atau parameter kode toko Anda.</p>
+          </div>
+          <a href="/" className="inline-block text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl transition">
+            Kembali ke Halaman Utama
+          </a>
         </div>
       </div>
     );
@@ -609,18 +897,23 @@ export default function WebDashboard() {
               </button>
             </form>
           )}
-          <p className="text-[11px] text-slate-500 mt-6">© 2026 NATA POS Protected Dashboard</p>
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="/" className="text-xs text-slate-500 hover:text-slate-300 transition">&larr; Kembali ke Beranda</a>
+          </div>
         </div>
       </div>
     );
   }
 
+  // =========================================================================
+  // VIEW 3: DASHBOARD LENGKAP TOKO KLIEN (SETELAH UNLOCKED)
+  // =========================================================================
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="NATA POS" className="h-9 w-auto object-contain rounded" onError={(e:any)=>{e.target.style.display='none'}} />
+          <img src="/logo.png" alt="NATA POS" className="h-9 w-auto object-contain rounded" onError={(e: any) => { e.target.style.display = 'none'; }} />
           <div>
             <h1 className="font-extrabold text-base leading-tight text-white flex items-center gap-2">
               {storeInfo?.store_name || 'NATA POS PUSAT'}
@@ -656,16 +949,15 @@ export default function WebDashboard() {
         </div>
       </header>
 
-      {/* Main Container */}
+      {/* Main Content Tabs */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-        {/* Navigation Tabs */}
         <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
           {[
             { id: 'overview', label: 'Ringkasan Toko', icon: TrendingUp },
             { id: 'finance', label: 'Laporan Keuangan & Laba Rugi', icon: DollarSign },
             { id: 'products', label: `Katalog Produk (${products.length})`, icon: ShoppingBag },
             { id: 'shifts', label: 'Rekap Kas Laci (Shift)', icon: Wallet },
-            { id: 'orders', label: `Antrean Percetakan (${orders.length})`, icon: Layers },
+            { id: 'orders', label: `Antrean Produksi & Jasa (${orders.length})`, icon: Layers },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -739,7 +1031,7 @@ export default function WebDashboard() {
               </div>
             </div>
 
-            {/* GRAFIK TREN OMZET 7 HARI TERAKHIR */}
+            {/* Visual 7 Days Chart */}
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -773,7 +1065,7 @@ export default function WebDashboard() {
               </div>
             </div>
 
-            {/* TABEL PENJUALAN HARI INI */}
+            {/* Penjualan Terkini Hari Ini */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center">
                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
@@ -1093,10 +1385,10 @@ export default function WebDashboard() {
           </div>
         )}
 
-        {/* TAB 5: ANTREAN PERCETAKAN */}
+        {/* TAB 5: ANTREAN PRODUKSI & JASA */}
         {activeTab === 'orders' && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200"><h3 className="font-bold text-sm text-slate-900">Monitoring Antrean Produksi Percetakan</h3></div>
+            <div className="px-5 py-4 border-b border-slate-200"><h3 className="font-bold text-sm text-slate-900">Monitoring Antrean Order Jasa & Produksi</h3></div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
@@ -1129,15 +1421,14 @@ export default function WebDashboard() {
         )}
       </main>
 
-      {/* MODAL 1: DETAIL RINCIAN STRUK PENJUALAN */}
+      {/* MODAL: DETAIL RINCIAN STRUK PENJUALAN */}
       {selectedReceipt && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex justify-between items-start border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                  <FileText,
-  AlertTriangle className="w-5 h-5 text-indigo-600" />
+                  <FileText className="w-5 h-5 text-indigo-600" />
                   Rincian Struk Penjualan
                 </h3>
                 <p className="text-xs text-slate-500 font-mono mt-0.5">
@@ -1205,7 +1496,7 @@ export default function WebDashboard() {
         </div>
       )}
 
-      {/* MODAL 2: TAMBAH PRODUK BARU */}
+      {/* MODAL: TAMBAH PRODUK BARU */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
