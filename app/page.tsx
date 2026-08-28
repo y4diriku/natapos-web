@@ -27,7 +27,8 @@ import {
   Calendar,
   Eye,
   BarChart2,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function WebDashboard() {
@@ -81,6 +82,7 @@ export default function WebDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyLowStock, setShowOnlyLowStock] = useState(false);
 
   // Editing State
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -505,9 +507,18 @@ export default function WebDashboard() {
     }
   };
 
-  const filteredProducts = products.filter(
-    (p) => p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const isProductLowStock = (p: any) => {
+    const st = Number(p.stock || 0);
+    return p.unit_type === 'KG' ? st <= 2 : st <= 5;
+  };
+
+  const lowStockCount = products.filter(isProductLowStock).length;
+
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.barcode?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchLowStock = showOnlyLowStock ? isProductLowStock(p) : true;
+    return matchSearch && matchLowStock;
+  });
 
   // Max value for visual chart height calculation
   const maxTrendAmount = Math.max(...weeklyTrend.map(t => t.amount), 1000);
@@ -910,6 +921,24 @@ export default function WebDashboard() {
               </div>
             )}
 
+            {/* BANNER NOTIFIKASI STOK MENIPIS */}
+            {lowStockCount > 0 && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-950 px-4 py-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 font-semibold">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Perhatian: Terdapat <b className="text-rose-600 font-black">{lowStockCount} produk</b> dengan stok menipis (&le; 5 PCS / 2 KG).</span>
+                </div>
+                <button
+                  onClick={() => setShowOnlyLowStock(!showOnlyLowStock)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-sm ${
+                    showOnlyLowStock ? 'bg-indigo-600 text-white' : 'bg-amber-200/90 hover:bg-amber-300 text-amber-900'
+                  }`}
+                >
+                  {showOnlyLowStock ? 'Tampilkan Semua Produk' : '⚠️ Filter Stok Menipis Saja'}
+                </button>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -973,8 +1002,14 @@ export default function WebDashboard() {
                               p.discount > 0 ? <span className="text-emerald-600 font-bold">{p.discount}%</span> : '-'
                             )}
                           </td>
-                          <td className="px-4 py-3 text-center font-bold text-slate-700">
-                            {p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} PCS`}
+                          <td className="px-4 py-3 text-center font-bold">
+                            {isProductLowStock(p) ? (
+                              <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[11px] font-black border border-rose-200 inline-flex items-center gap-1">
+                                ⚠️ {p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} PCS`}
+                              </span>
+                            ) : (
+                              <span className="text-slate-700">{p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} PCS`}</span>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-center">
                             {isEditing ? (
@@ -1086,7 +1121,8 @@ export default function WebDashboard() {
             <div className="flex justify-between items-start border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-600" />
+                  <FileText,
+  AlertTriangle className="w-5 h-5 text-indigo-600" />
                   Rincian Struk Penjualan
                 </h3>
                 <p className="text-xs text-slate-500 font-mono mt-0.5">
