@@ -141,53 +141,65 @@ export default function WebDashboard() {
     resolveStore();
   }, []);
 
-  // 2. Fetch Seluruh Data Toko
+  // 2. Fetch Seluruh Data Toko SECARA PARALEL (SERENTAK & ANTI-WATERFALL)
   const fetchData = async () => {
     if (!storeId || !isUnlocked) return;
     try {
-      // Cek Status Online Kasir
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', storeId)
-        .single();
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01 00:00:00`;
 
-      if (storeData) {
-        setStoreInfo(storeData);
-        if (storeData.updated_at) {
-          const lastPing = new Date(storeData.updated_at).getTime();
-          const now = new Date().getTime();
-          const diffSeconds = Math.floor((now - lastPing) / 1000);
-          setIsDesktopOnline(diffSeconds < 90);
+      // Eksekusi SEMUA query secara bersamaan dalam 1 round-trip
+      const [
+        storeRes,
+        trxTodayRes,
+        shiftRes,
+        prodRes,
+        orderRes,
+        expRes,
+        monthTrxRes,
+        monthExpRes
+      ] = await Promise.all([
+        supabase.from('stores').select('*').eq('id', storeId).single(),
+        supabase.from('cloud_transactions').select('*').eq('store_id', storeId).gte('created_at', `${today} 00:00:00`).order('created_at', { ascending: false }),
+        supabase.from('cloud_shift_logs').select('*').eq('store_id', storeId).order('start_time', { ascending: false }).limit(15),
+        supabase.from('cloud_products').select('*').eq('store_id', storeId).eq('is_deleted', 0).order('name', { ascending: true }),
+        supabase.from('cloud_orders_jasa').select('*').eq('store_id', storeId).order('tgl_order', { ascending: false }),
+        supabase.from('cloud_expenses').select('*').eq('store_id', storeId).order('created_at', { ascending: false }).limit(30),
+        supabase.from('cloud_transactions').select('total_amount, total_cost').eq('store_id', storeId).gte('created_at', monthStart),
+        supabase.from('cloud_expenses').select('amount').eq('store_id', storeId).neq('category', 'RESTOCK').neq('category', 'KAS_MASUK').neq('category', 'TAMBAH_MODAL').gte('created_at', monthStart)
+      ]);
+
+      // 1. Status Toko
+      if (storeRes.data) {
+        setStoreInfo(storeRes.data);
+        if (storeRes.data.updated_at) {
+          const lastPing = new Date(storeRes.data.updated_at).getTime();
+          setIsDesktopOnline((Date.now() - lastPing) / 1000 < 90);
         }
       }
 
-      // Transaksi Hari Ini
-      const today = new Date().toISOString().split('T')[0];
-      const { data: trxToday } = await supabase
-        .from('cloud_transactions')
-        .select('*')
-        .eq('store_id', storeId)
-        .gte('created_at', `${today} 00:00:00`)
-        .order('created_at', { ascending: false });
-
-      const allTrxToday = trxToday || [];
-      setTransactions(allTrxToday);
-
+      // 2. Transaksi Hari Ini
+      const allTrxToday = trxTodayRes.data || [];
       const omzet = allTrxToday.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
       const cost = allTrxToday.reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
 
-      // Shift Terakhir
-      const { data: shiftData } = await supabase
-        .from('cloud_shift_logs')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('start_time', { ascending: false })
-        .limit(15);
-      setShifts(shiftData || []);
-      
-      const latestShift = (shiftData || [])[0];
+      // 3. Shift
+      const shiftList = shiftRes.data || [];
+      const latestShift = shiftList[0];
       const expectedDrawer = latestShift?.status === 'OPEN' ? Number(latestShift.expected_cash || latestShift.initial_cash || 0) : 0;
+
+      // 4. Laporan Bulan Ini
+      const revMonth = (monthTrxRes.data || []).reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
+      const cogsMonth = (monthTrxRes.data || []).reduce((acc, curr) => acc + Number(curr.total_cost || 0), 0);
+      const opsMonth = (monthExpRes.data || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+
+      // UPDATE SEMUA STATE SECARA BERSAMAAN (1 RENDER SIKLUS)
+      setTransactions(allTrxToday);
+      setShifts(shiftList);
+      setProducts(prodRes.data || []);
+      setOrders(orderRes.data || []);
+      setExpenses(expRes.data || []);
 
       setStats({
         omzetToday: omzet,
@@ -196,35 +208,16 @@ export default function WebDashboard() {
         activeShiftDrawer: expectedDrawer,
       });
 
-      // Katalog Produk
-      const { data: prodData } = await supabase
-        .from('cloud_products')
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('is_deleted', 0)
-        .order('name', { ascending: true });
-      setProducts(prodData || []);
+      setFinanceSummary({
+        revenue: revMonth,
+        cogs: cogsMonth,
+        grossProfit: revMonth - cogsMonth,
+        operationalExpenses: opsMonth,
+        netProfit: (revMonth - cogsMonth) - opsMonth,
+      });
 
-      // Antrean Jasa
-      const { data: orderData } = await supabase
-        .from('cloud_orders_jasa')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('tgl_order', { ascending: false });
-      setOrders(orderData || []);
-
-      // Pengeluaran Biaya
-      const { data: expData } = await supabase
-        .from('cloud_expenses')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('created_at', { ascending: false })
-        .limit(30);
-      setExpenses(expData || []);
-
-      fetchFinanceData(financePeriod);
     } catch (error) {
-      console.error(error);
+      console.error('Parallel fetch error:', error);
     } finally {
       setLoading(false);
     }
@@ -281,10 +274,10 @@ export default function WebDashboard() {
       fetchData();
       const channel = supabase
         .channel('pos_realtime_feed')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_transactions', filter: `store_id=eq.${storeId}` }, () => fetchData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_shift_logs', filter: `store_id=eq.${storeId}` }, () => fetchData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_expenses', filter: `store_id=eq.${storeId}` }, () => fetchData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'stores', filter: `id=eq.${storeId}` }, () => fetchData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_transactions', filter: `store_id=eq.${storeId}` }, () => { clearTimeout(window.__refreshTimer); window.__refreshTimer = setTimeout(() => fetchData(), 250); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_shift_logs', filter: `store_id=eq.${storeId}` }, () => { clearTimeout(window.__refreshTimer); window.__refreshTimer = setTimeout(() => fetchData(), 250); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_expenses', filter: `store_id=eq.${storeId}` }, () => { clearTimeout(window.__refreshTimer); window.__refreshTimer = setTimeout(() => fetchData(), 250); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'stores', filter: `id=eq.${storeId}` }, () => { clearTimeout(window.__refreshTimer); window.__refreshTimer = setTimeout(() => fetchData(), 250); })
         .subscribe();
 
       const interval = setInterval(() => fetchData(), 20000);
