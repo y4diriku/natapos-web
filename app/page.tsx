@@ -58,6 +58,7 @@ export default function WebDashboard() {
     trxCount: 0,
     profitEstimate: 0,
     activeShiftDrawer: 0,
+    activeShiftNonCash: 0,
     activeShiftStatus: 'CLOSED',
     activeCashier: '-',
   });
@@ -189,41 +190,53 @@ export default function WebDashboard() {
       const shiftList = shiftRes.data || [];
       const latestShift = shiftList[0];
       
-      // HITUNG KAS LACI LIVE SERENTAK & INSTAN: Modal Awal + Penjualan Tunai + Kas Masuk - Kas Keluar
+      // HITUNG KAS LACI LIVE (TUNAI) DAN NON-TUNAI (QRIS/BANK) SECARA AKURAT
       let expectedDrawer = 0;
+      let nonCashShiftTotal = 0;
+
       if (latestShift?.status === 'OPEN') {
         const shiftStart = latestShift.start_time || '';
         const modalAwal = Number(latestShift.initial_cash || 0);
 
-        // Penjualan Tunai di shift ini
-        const cashSales = allTrxToday
-          .filter((t: any) => {
-            const pm = String(t.payment_method || '').toUpperCase();
-            const isCash = (pm.includes('TUNAI') || pm.includes('CASH') || pm === 'DP') && !pm.includes('SPLIT');
-            return isCash && (!shiftStart || String(t.created_at) >= shiftStart);
-          })
-          .reduce((sum: number, t: any) => sum + Number(t.total_amount || 0), 0);
+        let cashSales = 0;
+        let nonCashSales = 0;
 
-        // Kas Masuk & Keluar di shift ini
+        allTrxToday.forEach((t: any) => {
+          if (!shiftStart || String(t.created_at) >= shiftStart) {
+            const pm = String(t.payment_method || 'TUNAI').toUpperCase();
+            const total = Number(t.total_amount || 0);
+
+            if (pm.includes('SPLIT')) {
+              const matchTunai = pm.match(/TUNAI\s*(?:RP)?\s*([\d\.\,]+)/i);
+              const matchQRIS = pm.match(/QRIS\s*(?:RP)?\s*([\d\.\,]+)/i);
+              const cVal = matchTunai ? parseInt(matchTunai[1].replace(/[\.,]/g, ''), 10) : 0;
+              const qVal = matchQRIS ? parseInt(matchQRIS[1].replace(/[\.,]/g, ''), 10) : Math.max(0, total - cVal);
+              cashSales += cVal;
+              nonCashSales += qVal;
+            } else if (pm.includes('QRIS') || pm.includes('TRANS') || pm.includes('ONLINE') || pm.includes('DEBIT')) {
+              nonCashSales += total;
+            } else {
+              cashSales += total;
+            }
+          }
+        });
+
+        nonCashShiftTotal = nonCashSales;
+
+        // Kas Masuk & Keluar Kas Kecil Laci
         const expList = expRes.data || [];
         const cashIn = expList
-          .filter((e: any) => {
-            const isC = Number(e.is_cash) === 1 && ['KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category);
-            return isC && (!shiftStart || String(e.created_at) >= shiftStart);
-          })
+          .filter((e: any) => Number(e.is_cash) === 1 && ['KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category) && (!shiftStart || String(e.created_at) >= shiftStart))
           .reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
 
         const cashOut = expList
-          .filter((e: any) => {
-            const isC = Number(e.is_cash) === 1 && !['RESTOCK', 'KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category);
-            return isC && (!shiftStart || String(e.created_at) >= shiftStart);
-          })
+          .filter((e: any) => Number(e.is_cash) === 1 && !['RESTOCK', 'KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category) && (!shiftStart || String(e.created_at) >= shiftStart))
           .reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
 
         expectedDrawer = modalAwal + cashSales + cashIn - cashOut;
       } else {
-        // JIKA SHIFT CLOSED -> KAS LACI AKTIF ADALAH RP 0 (TIDAK ADA KASIR BERJAGA)
         expectedDrawer = 0;
+        nonCashShiftTotal = 0;
       }
 
       // Hitung Tren 7 Hari Terakhir
@@ -261,6 +274,7 @@ export default function WebDashboard() {
         trxCount: allTrxToday.length,
         profitEstimate: omzet - cost,
         activeShiftDrawer: expectedDrawer,
+        activeShiftNonCash: nonCashShiftTotal,
         activeShiftStatus: latestShift?.status === 'OPEN' ? 'OPEN' : 'CLOSED',
         activeCashier: latestShift?.cashier_name || 'Kasir',
       });
@@ -678,13 +692,20 @@ export default function WebDashboard() {
                   <h3 className={`text-2xl font-black mt-1 ${stats.activeShiftStatus === 'OPEN' ? 'text-slate-900' : 'text-slate-400'}`}>
                     {stats.activeShiftStatus === 'OPEN' ? `Rp ${stats.activeShiftDrawer.toLocaleString()}` : 'Rp 0'}
                   </h3>
-                  <p className="text-[11px] font-bold mt-0.5">
+                  <div className="text-[11px] font-bold mt-1 space-y-0.5">
                     {stats.activeShiftStatus === 'OPEN' ? (
-                      <span className="text-emerald-600">🟢 Shift Buka ({stats.activeCashier})</span>
+                      <>
+                        <div className="text-emerald-600">🟢 Shift Buka ({stats.activeCashier})</div>
+                        <div className="text-slate-500 text-[10px] font-normal flex items-center gap-1.5 pt-0.5">
+                          <span>💵 Tunai: <b>Rp {stats.activeShiftDrawer.toLocaleString()}</b></span>
+                          <span>•</span>
+                          <span>📱 QRIS/Bank: <b className="text-indigo-600">Rp {stats.activeShiftNonCash.toLocaleString()}</b></span>
+                        </div>
+                      </>
                     ) : (
                       <span className="text-slate-400">🔴 Shift Tutup (Standby)</span>
                     )}
-                  </p>
+                  </div>
                 </div>
                 <div className={`p-3 rounded-xl ${stats.activeShiftStatus === 'OPEN' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
                   <Clock className="w-6 h-6" />
