@@ -22,7 +22,7 @@ import {
   Users
 } from 'lucide-react';
 
-const FOUNDER_MASTER_PASS = 'nata2026'; // Password Master Founder
+// Password Master divalidasi via Server RPC
 
 export default function SuperadminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,15 +67,24 @@ export default function SuperadminPage() {
     }
   }, [isAuthenticated]);
 
-  // Handle Login Master Founder
-  const handleAuth = (e: React.FormEvent) => {
+  // Handle Login Master Founder via Server RPC
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passInput === FOUNDER_MASTER_PASS) {
-      setIsAuthenticated(true);
-      setErrorMsg('');
-    } else {
-      setErrorMsg('Password Master Founder salah!');
-      setPassInput('');
+    setErrorMsg('');
+    try {
+      const { data: isValid, error } = await supabase.rpc('verify_superadmin_password', {
+        p_password: passInput.trim()
+      });
+
+      if (error || isValid !== true) {
+        setErrorMsg('Password Master Founder salah!');
+        setPassInput('');
+      } else {
+        setIsAuthenticated(true);
+        setErrorMsg('');
+      }
+    } catch (err) {
+      setErrorMsg('Gagal memverifikasi password master.');
     }
   };
 

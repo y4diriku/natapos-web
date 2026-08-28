@@ -116,13 +116,13 @@ export default function WebDashboard() {
       try {
         let storeData: any = null;
         if (storeParam) {
-          const { data } = await supabase.from('stores').select('*').eq('store_code', storeParam.toUpperCase()).single();
+          const { data } = await supabase.from('stores').select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at').eq('store_code', storeParam.toUpperCase()).single();
           storeData = data;
         }
         if (!storeData) {
           const targetId = idParam || process.env.NEXT_PUBLIC_DEFAULT_STORE_ID || '';
           if (targetId) {
-            const { data } = await supabase.from('stores').select('*').eq('id', targetId).single();
+            const { data } = await supabase.from('stores').select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at').eq('id', targetId).single();
             storeData = data;
           }
         }
@@ -166,7 +166,7 @@ export default function WebDashboard() {
         monthTrxRes,
         monthExpRes
       ] = await Promise.all([
-        supabase.from('stores').select('*').eq('id', storeId).single(),
+        supabase.from('stores').select('id, store_name, store_code, auth_mode, phone, address, is_active, updated_at').eq('id', storeId).single(),
         supabase.from('cloud_transactions').select('*').eq('store_id', storeId).gte('created_at', `${today} 00:00:00`).order('created_at', { ascending: false }),
         supabase.from('cloud_shift_logs').select('*').eq('store_id', storeId).order('start_time', { ascending: false }).limit(15),
         supabase.from('cloud_products').select('*').eq('store_id', storeId).eq('is_deleted', 0).order('name', { ascending: true }),
@@ -406,16 +406,31 @@ export default function WebDashboard() {
   }, [financePeriod, customStartDate, customEndDate, storeId, isUnlocked]);
 
   // Auth Handlers
-  const handleVerifyPIN = (e: React.FormEvent) => {
+  const handleVerifyPIN = async (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPin = String(storeInfo?.pin || '1234').trim();
-    if (pinInput.trim() === correctPin) {
-      setIsUnlocked(true);
-      setAuthError('');
-      if (rememberMe) localStorage.setItem(`natapos_unlocked_${storeId}`, 'true');
-    } else {
-      setAuthError('PIN Toko salah! Silakan coba lagi.');
-      setPinInput('');
+    setAuthError('');
+    try {
+      // Verifikasi aman via Supabase RPC (Server-Side)
+      const { data: isValid, error } = await supabase.rpc('verify_store_pin', {
+        p_store_id: storeId,
+        p_pin: pinInput.trim()
+      });
+
+      if (error) {
+        setAuthError('Terjadi kesalahan verifikasi.');
+        return;
+      }
+
+      if (isValid === true) {
+        setIsUnlocked(true);
+        setAuthError('');
+        if (rememberMe) localStorage.setItem(`natapos_unlocked_${storeId}`, 'true');
+      } else {
+        setAuthError('PIN Toko salah! Silakan coba lagi.');
+        setPinInput('');
+      }
+    } catch (err: any) {
+      setAuthError('Gagal memverifikasi PIN.');
     }
   };
 
