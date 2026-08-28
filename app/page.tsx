@@ -186,7 +186,42 @@ export default function WebDashboard() {
 
       const shiftList = shiftRes.data || [];
       const latestShift = shiftList[0];
-      const expectedDrawer = latestShift?.status === 'OPEN' ? Number(latestShift.expected_cash || latestShift.initial_cash || 0) : 0;
+      
+      // HITUNG KAS LACI LIVE SERENTAK & INSTAN: Modal Awal + Penjualan Tunai + Kas Masuk - Kas Keluar
+      let expectedDrawer = 0;
+      if (latestShift?.status === 'OPEN') {
+        const shiftStart = latestShift.start_time || '';
+        const modalAwal = Number(latestShift.initial_cash || 0);
+
+        // Penjualan Tunai di shift ini
+        const cashSales = allTrxToday
+          .filter((t: any) => {
+            const pm = String(t.payment_method || '').toUpperCase();
+            const isCash = (pm.includes('TUNAI') || pm.includes('CASH') || pm === 'DP') && !pm.includes('SPLIT');
+            return isCash && (!shiftStart || String(t.created_at) >= shiftStart);
+          })
+          .reduce((sum: number, t: any) => sum + Number(t.total_amount || 0), 0);
+
+        // Kas Masuk & Keluar di shift ini
+        const expList = expRes.data || [];
+        const cashIn = expList
+          .filter((e: any) => {
+            const isC = Number(e.is_cash) === 1 && ['KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category);
+            return isC && (!shiftStart || String(e.created_at) >= shiftStart);
+          })
+          .reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
+
+        const cashOut = expList
+          .filter((e: any) => {
+            const isC = Number(e.is_cash) === 1 && !['RESTOCK', 'KAS_MASUK', 'TAMBAH_MODAL'].includes(e.category);
+            return isC && (!shiftStart || String(e.created_at) >= shiftStart);
+          })
+          .reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
+
+        expectedDrawer = modalAwal + cashSales + cashIn - cashOut;
+      } else {
+        expectedDrawer = Number(latestShift?.actual_cash || latestShift?.expected_cash || 0);
+      }
 
       // Hitung Tren 7 Hari Terakhir
       const dayMap: { [key: string]: number } = {};
