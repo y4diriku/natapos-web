@@ -36,6 +36,10 @@ import {
   ChevronRight,
   ArrowRight,
   Sparkles,
+  Copy,
+  Palette,
+  ShoppingCart,
+  Wrench,
   MessageCircle,
   Copy,
   Sliders,
@@ -608,7 +612,7 @@ export default function WebDashboard() {
           <div className="max-w-5xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-3.5 py-1.5 rounded-full text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              Sistem Kasir Hybrid 2-in-1: Ritel, Fotokopi & Percetakan
+              Software Kasir Hybrid: Solusi Terpadu Penjualan Ritel & Layanan Jasa
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
@@ -619,7 +623,7 @@ export default function WebDashboard() {
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Kasir cepat <i>offline-first</i> yang dirancang khusus untuk kemajuan UMKM: scan barcode kilat, hitung order jasa & fotokopi, QRIS dinamis otomatis, serta pantau omzet real-time dari smartphone.
+              Software kasir <i>offline-first</i> yang dirancang tangguh dan andal untuk operasional harian: scan barcode instan, hitung otomatis order jasa & fotokopi, QRIS dinamis otomatis, serta pantau omzet toko secara real-time dari rumah melalui laptop maupun smartphone tanpa perlu menyentuh komputer kasir.
             </p>
 
             {/* CTAs */}
@@ -656,16 +660,16 @@ export default function WebDashboard() {
                 <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
                   <Smartphone className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-sm text-white">QRIS Dinamis (Nominal Terkunci)</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Nominal pembayaran langsung muncul terkunci di HP pembeli tanpa pembeli perlu mengetik manual.</p>
+                <h3 className="font-bold text-sm text-white">QRIS Dinamis Otomatis</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Nominal tagihan langsung ter-generate otomatis pada QR Code. Pelanggan tinggal scan dan bayar tanpa perlu mengetikkan nominal secara manual, bebas risiko salah transfer.</p>
               </div>
 
               <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-2">
                 <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-sm text-white">Cloud Sync Instan (&lt; 0.2 Detik)</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Begitu kasir menekan tombol Bayar, angka omzet dan kas laci langsung ter-update seketika di HP pemilik toko.</p>
+                <h3 className="font-bold text-sm text-white">Pantau Live dari Rumah (&lt; 0.2 Detik)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Pantau grafik omzet, histori penjualan, dan saldo kas laci secara live dari rumah melalui laptop atau smartphone tanpa mengganggu kasir yang bertugas.</p>
               </div>
             </div>
           </div>
@@ -681,28 +685,36 @@ export default function WebDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                <div className="text-2xl">🖨️</div>
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-3 hover:border-slate-700 transition group">
+                <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition">
+                  <Copy className="w-5 h-5" />
+                </div>
                 <h3 className="font-bold text-sm text-white">Fotokopi & Toko ATK</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Hitung print per lembar (A4, F4, A3), jilid, laminating, dan penjualan ritel alat tulis dalam 1 nota struk.</p>
+                <p className="text-xs text-slate-400 leading-relaxed">Hitung cetak per lembar (A4, F4, A3, jilid, laminating), kelola stok alat tulis, dan cetak struk penjualan dalam satu transaksi.</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                <div className="text-2xl">🎨</div>
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-3 hover:border-slate-700 transition group">
+                <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-105 transition">
+                  <Palette className="w-5 h-5" />
+                </div>
                 <h3 className="font-bold text-sm text-white">Digital Printing & Sablon</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Kelola pesanan spanduk meteran, banner, stiker, uang muka (DP), deadline selesai, dan tiket SPK operator workshop.</p>
+                <p className="text-xs text-slate-400 leading-relaxed">Hitung meteran spanduk/banner, sablon, cetak stiker, catat DP, estimasi waktu selesai, dan kelola Surat Perintah Kerja (SPK).</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                <div className="text-2xl">🛒</div>
-                <h3 className="font-bold text-sm text-white">Minimarket & Retail Toko</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Scan barcode perkalian cepat (10*barang), multi-satuan Dus/Pcs/KG, dan peringatan stok fisik menipis.</p>
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-3 hover:border-slate-700 transition group">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-sm text-white">Minimarket & Toko Ritel</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Scan barcode perkalian cepat (10*barang), multi-satuan bertingkat (Dus/Renceng/Pcs/KG), dan pengawasan stok fisik menipis.</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                <div className="text-2xl">🛠️</div>
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-3 hover:border-slate-700 transition group">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-105 transition">
+                  <Wrench className="w-5 h-5" />
+                </div>
                 <h3 className="font-bold text-sm text-white">Jasa & Custom Order</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Laundry, konveksi, servis elektronik, atau usaha hybrid lainnya dengan pencatatan DP & sisa tagihan yang rapi.</p>
+                <p className="text-xs text-slate-400 leading-relaxed">Bengkel & servis, laundry, konveksi, atau usaha hybrid lainnya dengan pencatatan uang muka (DP) dan sisa tagihan yang akurat.</p>
               </div>
             </div>
           </div>

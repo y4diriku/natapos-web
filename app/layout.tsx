@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NATA POS PRO - Software Kasir Ritel & Percetakan',
-  description: 'Sistem POS Hybrid Cerdas untuk Kasir Ritel, Fotokopi, Digital Printing, dan Manajemen Toko Modern.',
+  title: 'NATA POS PRO - Software Kasir Ritel & Jasa',
+  description: 'Software kasir offline-first untuk bisnis ritel, fotokopi, percetakan, dan aneka layanan jasa. Pantau omzet toko dari mana saja secara real-time.',
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',
