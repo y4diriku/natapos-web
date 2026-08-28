@@ -10,7 +10,8 @@ import {
   Clock, 
   Search, 
   RefreshCw, 
-  Edit3, 
+  Edit3,
+  Trash2, 
   Check, 
   Layers, 
   CheckCircle2, 
@@ -427,6 +428,30 @@ export default function StoreDashboardPage() {
       }
     } catch (err: any) {
       alert('Gagal: ' + err.message);
+    }
+  };
+
+  // Delete Product Handler (Soft Delete)
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus produk '${productName}' dari katalog?`)) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('cloud_products')
+        .update({ is_deleted: 1, updated_at: new Date().toISOString() })
+        .eq('id', productId)
+        .eq('store_id', storeId);
+
+      if (!error) {
+        setSaveSuccessMsg(`Produk '${productName}' berhasil dihapus dari katalog!`);
+        fetchData();
+        setTimeout(() => setSaveSuccessMsg(''), 4000);
+      } else {
+        alert('Gagal menghapus produk: ' + error.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
     }
   };
 
@@ -972,20 +997,35 @@ export default function StoreDashboardPage() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             {isEditing ? (
-                              <button onClick={() => handleSavePrice(p.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded font-bold flex items-center gap-1 mx-auto text-xs">
-                                <Check className="w-3.5 h-3.5" /> Simpan
-                              </button>
+                              <div className="flex items-center justify-center gap-1">
+                                <button onClick={() => handleSavePrice(p.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded font-bold flex items-center gap-1 text-xs shadow-sm">
+                                  <Check className="w-3 h-3" /> Simpan
+                                </button>
+                                <button onClick={() => setEditingId(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold text-xs">
+                                  Batal
+                                </button>
+                              </div>
                             ) : (
-                              <button
-                                onClick={() => {
-                                  setEditingId(p.id);
-                                  setEditPrice(Number(p.price));
-                                  setEditDiscount(Number(p.discount || 0));
-                                }}
-                                className="bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 px-2.5 py-1 rounded font-bold flex items-center gap-1 mx-auto text-xs border border-slate-200"
-                              >
-                                <Edit3 className="w-3 h-3" /> Edit
-                              </button>
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={() => {
+                                    setEditingId(p.id);
+                                    setEditPrice(Number(p.price));
+                                    setEditDiscount(Number(p.discount || 0));
+                                  }}
+                                  className="bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 px-2 py-1 rounded font-bold flex items-center gap-1 text-xs border border-slate-200"
+                                  title="Edit Harga / Diskon"
+                                >
+                                  <Edit3 className="w-3 h-3" /> Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteProduct(p.id, p.name)}
+                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded font-bold flex items-center gap-1 text-xs border border-rose-200"
+                                  title="Hapus Produk"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                           </td>
                         </tr>
