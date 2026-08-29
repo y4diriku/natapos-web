@@ -211,6 +211,8 @@ export default function StoreDashboardPage() {
               const qVal = matchQRIS ? parseInt(matchQRIS[1].replace(/[\.,]/g, ''), 10) : Math.max(0, total - cVal);
               cashSales += cVal;
               nonCashSales += qVal;
+            } else if (pm.includes('KASBON') || pm.includes('VOID')) {
+              // Bukan Uang Fisik Laci
             } else if (pm.includes('QRIS') || pm.includes('TRANS') || pm.includes('ONLINE') || pm.includes('DEBIT')) {
               nonCashSales += total;
             } else {
@@ -773,7 +775,13 @@ export default function StoreDashboardPage() {
                           <td className="px-4 py-3 font-mono font-bold text-indigo-600">{t.receipt_no}</td>
                           <td className="px-4 py-3 text-slate-500 font-mono">{formatTimeDisplay(t.created_at)}</td>
                           <td className="px-4 py-3 font-semibold text-slate-800">{t.customer_name || 'Umum'}</td>
-                          <td className="px-4 py-3"><span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">{t.payment_method}</span></td>
+                          <td className="px-4 py-3">
+                            {t.payment_method === 'KASBON' ? (
+                                <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold">🔴 HUTANG</span>
+                            ) : (
+                                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">{t.payment_method}</span>
+                            )}
+                          </td>
                           <td className="px-4 py-3 text-right font-bold text-emerald-600">Rp {Number(t.total_amount).toLocaleString()}</td>
                           <td className="px-4 py-3 text-center">
                             <button
