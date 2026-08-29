@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     shortcut: '/logo.png',
     apple: '/logo.png',
   },
+  verification: {
+    google: 'pX6QcS2Mk_t3FAnm5aATeSOtJ-A5621E5fz7xR6Jekg',
+  },
   openGraph: {
     title: 'NATA POS PRO - Software Kasir Ritel & Jasa',
     description: 'Sistem POS Hybrid cerdas untuk toko ritel, fotokopi, digital printing, dan usaha jasa. Pantau omzet toko secara live dari mana saja.',
@@ -75,6 +78,7 @@ export default function RootLayout({
     <html lang="id">
       <head>
         <link rel="icon" href="/logo.png" type="image/png" />
+        <meta name="google-site-verification" content="pX6QcS2Mk_t3FAnm5aATeSOtJ-A5621E5fz7xR6Jekg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
