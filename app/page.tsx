@@ -743,113 +743,117 @@ export default function WebDashboard() {
           </div>
         </section>
 
-        {/* PRICING & FEATURE TIER COMPARISON SECTION (v1.0 vs v2.0 Enterprise) */}
-        <section className="py-20 px-4 sm:px-8 border-b border-slate-800/80 bg-slate-900/30">
-          <div className="max-w-6xl mx-auto space-y-12">
+        {/* PRICING & FEATURE TIER COMPARISON SECTION (CLEAN COPYWRITING & MODERN GLOW) */}
+        <section className="relative py-24 px-4 sm:px-8 border-b border-slate-800/80 bg-slate-950/60 overflow-hidden">
+          {/* Latar Belakang Cahaya Interaktif */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+          <div className="max-w-6xl mx-auto space-y-14 relative z-10">
             <div className="text-center space-y-3">
-              <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">
-                Pilihan Paket Fleksibel
+              <span className="text-xs font-extrabold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full inline-flex items-center gap-1.5 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5" /> Pilihan Paket Fleksibel
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Pilih Versi yang Sesuai dengan Skala Usaha Anda
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+                Pilih Versi Sesuai Skala Usaha Anda
               </h2>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-                Mulai dari toko mandiri satu kasir hingga jaringan percetakan modern multi-terminal dengan layar produksi workshop.
+              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+                Mulai dari toko mandiri satu kasir hingga percetakan modern multi-komputer dengan pantauan layar produksi terpadu.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
               
               {/* TIER 1: NATA POS PRO v1.0 */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-slate-700 transition">
+              <div className="bg-slate-900/90 border border-slate-800/90 hover:border-slate-700 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-slate-900/60 group">
                 <div className="space-y-4">
                   <div className="inline-block bg-slate-800 text-slate-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-slate-700">
-                    STANDALONE SINGLE-PC
+                    STANDALONE (1 KASIR)
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white">NATA POS PRO</h3>
-                    <p className="text-xs text-slate-400 mt-1">Solusi teruji untuk 1 komputer kasir di toko ritel, ATK, fotokopi, atau agen mandiri.</p>
+                    <h3 className="text-xl font-black text-white group-hover:text-indigo-300 transition-colors">NATA POS PRO</h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">Solusi teruji dan andal untuk 1 komputer kasir di toko ritel, minimarket, ATK, fotokopi, atau agen mandiri.</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800 space-y-2.5 text-xs text-slate-300">
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>1 Komputer Kasir</b> (Offline-First SQLite)</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Fitur Ritel & Order Jasa 2-in-1</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>QRIS Dinamis Otomatis</b> (Tag 54 EMVCo)</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Cetak Thermal HD (Smart Dithering Logo)</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Kirim E-Nota Teks via WhatsApp</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Web Dashboard Pantau Omzet HP 24 Jam</span></div>
-                    <div className="flex items-center gap-2.5 text-slate-500"><X className="w-4 h-4 text-slate-600 shrink-0" /> <span>Multi-Kasir Jaringan LAN (WiFi)</span></div>
-                    <div className="flex items-center gap-2.5 text-slate-500"><X className="w-4 h-4 text-slate-600 shrink-0" /> <span>Layar Touchscreen Operator Workshop</span></div>
+                  <div className="pt-3 border-t border-slate-800/80 space-y-3 text-xs text-slate-300 font-medium">
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>1 Komputer Kasir Utama</b></span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>100% Tetap Berjalan Tanpa Internet</b></span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Penjualan Barang Ritel & Order Jasa 2-in-1</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>QRIS Dinamis Otomatis</b> (Anti-Salah Transfer)</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Cetak Struk Thermal & Logo Toko Jelas</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Kirim E-Nota Digital ke WhatsApp Pembeli</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Web Dashboard Pantau Omzet 24 Jam</b></span></div>
+                    <div className="flex items-center gap-2.5 text-slate-500"><X className="w-4 h-4 text-slate-600 shrink-0" /> <span>Multi-Kasir Jaringan Lokal (WiFi/LAN)</span></div>
+                    <div className="flex items-center gap-2.5 text-slate-500"><X className="w-4 h-4 text-slate-600 shrink-0" /> <span>Layar Monitor Pengerjaan Pesanan (Workshop)</span></div>
                   </div>
                 </div>
 
                 <a
-                  href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20tertarik%20dengan%20Paket%20NATA%20POS%20PRO%20(v1.0)."
+                  href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20tertarik%20dengan%20Paket%20NATA%20POS%20PRO."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-slate-700 block"
+                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-sm"
                 >
                   Konsultasi Paket Pro
                 </a>
               </div>
 
-              {/* TIER 2: NATA POS ENTERPRISE v2.0 (HIGHLIGHT) */}
-              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950/40 border-2 border-indigo-500 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl shadow-indigo-950/50 relative lg:-translate-y-2">
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-emerald-500 text-white font-black text-[10px] tracking-wider uppercase px-4 py-1 rounded-full shadow-md">
-                  ⭐ PALING POPULER / BEST VALUE
+              {/* TIER 2: NATA POS ENTERPRISE v2.0 (BEST VALUE & HIGHLIGHT GLOW) */}
+              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950/50 border-2 border-indigo-500 hover:border-indigo-400 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl shadow-indigo-950/60 relative lg:-translate-y-3 transition-all duration-300 hover:-translate-y-4 group">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 text-white font-black text-[10px] tracking-wider uppercase px-4 py-1 rounded-full shadow-lg">
+                  ⭐ PALING POPULER / REKOMENDASI
                 </div>
 
                 <div className="space-y-4">
                   <div className="inline-block bg-indigo-500/20 text-indigo-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-indigo-500/30">
-                    MULTI-TERMINAL LAN & WORKSHOP
+                    MULTI-TERMINAL & WORKSHOP
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-white flex items-center gap-2">
+                    <h3 className="text-2xl font-black text-white group-hover:text-indigo-300 transition-colors">
                       NATA POS ENTERPRISE
                     </h3>
-                    <p className="text-xs text-slate-300 mt-1">Solusi komplit untuk percetakan sibuk, swalayan, atau ruko dengan ruang produksi terpisah.</p>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">Solusi lengkap untuk percetakan, swalayan, atau ruko bertingkat dengan ruang produksi terpisah.</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800 space-y-2.5 text-xs text-slate-200 font-medium">
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Semua Fitur Versi Pro v1.0</b></span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Multi-Kasir LAN Server</b> (Kasir 1, 2, 3 terhubung)</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Local Owner Web Portal (/portal)</b> kelola via WiFi</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Live Workshop Display (/workshop)</b> bunyi bel 🔔</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Auto-Notifikasi WhatsApp</b> saat operator klik Selesai</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Buku Piutang Terpusat</b> & Early Warning Hutang</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Zero-Config Discovery (Auto Scan IP Server)</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>HPP Moving Average Akuntansi Akurat</span></div>
+                  <div className="pt-3 border-t border-slate-800/80 space-y-3 text-xs text-slate-200 font-medium">
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Semua Fitur Versi Pro Lengkap</b></span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Multi-Kasir Jaringan Lokal</b> (Kasir 1, 2, 3 terhubung)</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Portal Kelola Produk & Omzet via WiFi</b></span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Layar Monitor Antrean Produksi</b> (Bel Notifikasi 🔔)</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Notifikasi WhatsApp Otomatis</b> saat pesanan selesai</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Buku Piutang Terpusat</b> & Peringatan Hutang Pelanggan</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Pindai Server Otomatis (Tanpa Atur IP Manual)</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Harga Pokok (HPP) Rata-Rata Otomatis</span></div>
                   </div>
                 </div>
 
                 <a
-                  href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20ingin%20memilih%20Paket%20NATA%20POS%20ENTERPRISE%20(v2.0)."
+                  href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20ingin%20memilih%20Paket%20NATA%20POS%20ENTERPRISE."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30 block"
+                  className="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3.5 rounded-2xl text-xs transition duration-200 shadow-xl shadow-indigo-600/40 block"
                 >
                   Pilih Paket Enterprise 🚀
                 </a>
               </div>
 
               {/* TIER 3: CUSTOM MULTI-CABANG / FRANCHISE */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-slate-700 transition">
+              <div className="bg-slate-900/90 border border-slate-800/90 hover:border-slate-700 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-slate-900/60 group">
                 <div className="space-y-4">
                   <div className="inline-block bg-purple-500/20 text-purple-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-purple-500/30">
                     FRANCHISE & MULTI-CABANG
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white">CUSTOM FRANCHISE</h3>
-                    <p className="text-xs text-slate-400 mt-1">Untuk pemilik banyak cabang toko dengan laporan keuangan konsolidasi terpusat.</p>
+                    <h3 className="text-xl font-black text-white group-hover:text-purple-300 transition-colors">CUSTOM FRANCHISE</h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">Untuk pemilik banyak cabang toko dengan laporan omzet konsolidasi terpusat.</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800 space-y-2.5 text-xs text-slate-300">
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Semua Fitur Enterprise v2.0</b></span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Konsolidasi Laporan Multi-Cabang</span></div>
+                  <div className="pt-3 border-t border-slate-800/80 space-y-3 text-xs text-slate-300 font-medium">
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span><b>Semua Fitur Enterprise Lengkap</b></span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Laporan Keuangan Konsolidasi Multi-Cabang</span></div>
                     <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Mutasi Stok Antar-Cabang Terpusat</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Dedicated Cloud Server & Database</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Custom WhatsApp Gateway VPS Sendiri</span></div>
-                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Prioritas Dukungan Teknis 24/7</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Server & Database Dedicated Mandiri</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>WhatsApp Gateway Server VPS Sendiri</span></div>
+                    <div className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> <span>Prioritas Dukungan Teknis Langsung</span></div>
                   </div>
                 </div>
 
@@ -857,7 +861,7 @@ export default function WebDashboard() {
                   href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20ingin%20konsultasi%20Kustomisasi%20Multi-Cabang%20/%20Franchise."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-xs transition border border-slate-700 block"
+                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-sm"
                 >
                   Konsultasi Khusus Franchise
                 </a>
