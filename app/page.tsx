@@ -743,15 +743,19 @@ export default function WebDashboard() {
           </div>
         </section>
 
-        {/* PRICING & FEATURE TIER COMPARISON SECTION (WITH TRANSPARENT PRICING) */}
-        <section className="relative py-24 px-4 sm:px-8 border-b border-slate-800/80 bg-slate-950/60 overflow-hidden">
-          {/* Latar Belakang Cahaya Interaktif */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+        {/* PRICING & FEATURE TIER COMPARISON SECTION (ULTRA MODERN & PROPORTIONAL) */}
+        <section className="relative py-28 px-4 sm:px-8 border-b border-slate-800/80 bg-slate-950 overflow-hidden">
+          {/* 1. High-Tech Grid Pattern Background */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b18_1px,transparent_1px),linear-gradient(to_bottom,#1e293b18_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] pointer-events-none"></div>
 
-          <div className="max-w-6xl mx-auto space-y-14 relative z-10">
+          {/* 2. Dynamic Floating Ambient Aura (Parallax Glowing Orbs) */}
+          <div className="absolute -top-32 left-1/4 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
+          <div className="absolute -bottom-32 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
+
+          <div className="max-w-6xl mx-auto space-y-16 relative z-10">
             <div className="text-center space-y-3">
-              <span className="text-xs font-extrabold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full inline-flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" /> Pilihan Paket & Investasi
+              <span className="text-xs font-extrabold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/25 px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Pilihan Paket & Investasi
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
                 Pilihan Paket Transparan Tanpa Biaya Tersembunyi
@@ -764,9 +768,9 @@ export default function WebDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
               
               {/* TIER 1: NATA POS PRO v1.0 */}
-              <div className="bg-slate-900/90 border border-slate-800/90 hover:border-slate-700 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-slate-900/60 group">
-                <div className="space-y-4">
-                  <div className="inline-block bg-slate-800 text-slate-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-slate-700">
+              <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800/90 hover:border-slate-700 rounded-3xl p-7 sm:p-8 flex flex-col justify-between space-y-7 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(15,23,42,0.8)] group">
+                <div className="space-y-5">
+                  <div className="inline-block bg-slate-800 text-slate-300 text-[11px] font-extrabold px-3 py-1 rounded-lg border border-slate-700 tracking-wide">
                     STANDALONE (1 KASIR)
                   </div>
                   <div>
@@ -774,14 +778,18 @@ export default function WebDashboard() {
                     <p className="text-xs text-slate-400 mt-1 leading-relaxed">Solusi teruji untuk 1 komputer kasir di toko ritel, minimarket, ATK, fotokopi, atau agen mandiri.</p>
                   </div>
 
-                  {/* Blok Harga */}
-                  <div className="pt-2 pb-1 space-y-1">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-black text-white">Rp 1.250.000</span>
-                      <span className="text-xs text-slate-400 font-medium">/ sekali bayar</span>
+                  {/* Nominal Harga Rapi Bertingkat */}
+                  <div className="space-y-2 pt-1">
+                    <div>
+                      <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                        Rp 1.250.000
+                      </div>
+                      <div className="text-xs text-slate-400 font-semibold mt-1">
+                        Sekali Bayar • Hak Milik Selamanya
+                      </div>
                     </div>
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold p-2.5 rounded-xl leading-relaxed">
-                      🎁 <b>Bonus:</b> Gratis 1 Tahun Pertama Layanan Cloud Web HP & WhatsApp Gateway!
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-bold p-3 rounded-2xl leading-relaxed">
+                      🎁 <b>Bonus:</b> Gratis 1 Tahun Pertama Layanan Cloud Web & WhatsApp Gateway!
                     </div>
                   </div>
 
@@ -802,20 +810,22 @@ export default function WebDashboard() {
                   href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20tertarik%20dengan%20Paket%20NATA%20POS%20PRO%20(Rp%201.250.000)."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-sm"
+                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-md"
                 >
                   Pilih Paket Pro
                 </a>
               </div>
 
-              {/* TIER 2: NATA POS ENTERPRISE v2.0 (BEST VALUE & HIGHLIGHT GLOW) */}
-              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950/50 border-2 border-indigo-500 hover:border-indigo-400 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl shadow-indigo-950/60 relative lg:-translate-y-3 transition-all duration-300 hover:-translate-y-4 group">
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 text-white font-black text-[10px] tracking-wider uppercase px-4 py-1 rounded-full shadow-lg">
-                  ⭐ PALING POPULER / REKOMENDASI
+              {/* TIER 2: NATA POS ENTERPRISE v2.0 (HIGHLIGHT GLOW & TOP-RIGHT BADGE) */}
+              <div className="bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-indigo-950/60 backdrop-blur-xl border-2 border-indigo-500 hover:border-indigo-400 rounded-3xl p-7 sm:p-8 flex flex-col justify-between space-y-7 shadow-[0_15px_50px_rgba(79,70,229,0.25)] relative transition-all duration-500 hover:-translate-y-2.5 hover:shadow-[0_25px_60px_rgba(79,70,229,0.4)] group">
+                
+                {/* Modern Badge di Sudut Kanan Atas */}
+                <div className="absolute top-6 right-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 text-white font-black text-[10px] tracking-wider uppercase px-3 py-1 rounded-full shadow-lg shadow-indigo-500/40 flex items-center gap-1">
+                  ⭐ REKOMENDASI
                 </div>
 
-                <div className="space-y-4">
-                  <div className="inline-block bg-indigo-500/20 text-indigo-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-indigo-500/30">
+                <div className="space-y-5">
+                  <div className="inline-block bg-indigo-500/20 text-indigo-300 text-[11px] font-extrabold px-3 py-1 rounded-lg border border-indigo-500/30 tracking-wide">
                     MULTI-TERMINAL & WORKSHOP
                   </div>
                   <div>
@@ -825,14 +835,18 @@ export default function WebDashboard() {
                     <p className="text-xs text-slate-300 mt-1 leading-relaxed">Solusi lengkap untuk percetakan, swalayan, atau ruko bertingkat dengan ruang produksi terpisah.</p>
                   </div>
 
-                  {/* Blok Harga */}
-                  <div className="pt-2 pb-1 space-y-1">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-black text-white">Rp 2.450.000</span>
-                      <span className="text-xs text-slate-400 font-medium">/ lisensi server</span>
+                  {/* Nominal Harga Rapi Bertingkat */}
+                  <div className="space-y-2 pt-1">
+                    <div>
+                      <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                        Rp 2.450.000
+                      </div>
+                      <div className="text-xs text-indigo-300 font-semibold mt-1">
+                        Sekali Bayar • Bebas Tambah Komputer Kasir
+                      </div>
                     </div>
-                    <div className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold p-2.5 rounded-xl leading-relaxed">
-                      🎁 <b>Bonus:</b> Gratis 1 Tahun Pertama Cloud Sync, Portal WiFi, Live Workshop & WA Gateway!
+                    <div className="bg-indigo-500/15 border border-indigo-500/30 text-indigo-200 text-[11px] font-bold p-3 rounded-2xl leading-relaxed">
+                      🎁 <b>Bonus:</b> Gratis 1 Tahun Pertama Layanan Cloud Web, Portal WiFi, Layar Workshop & WA!
                     </div>
                   </div>
 
@@ -859,9 +873,9 @@ export default function WebDashboard() {
               </div>
 
               {/* TIER 3: CUSTOM MULTI-CABANG / FRANCHISE */}
-              <div className="bg-slate-900/90 border border-slate-800/90 hover:border-slate-700 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-slate-900/60 group">
-                <div className="space-y-4">
-                  <div className="inline-block bg-purple-500/20 text-purple-300 text-[11px] font-bold px-3 py-1 rounded-lg border border-purple-500/30">
+              <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800/90 hover:border-slate-700 rounded-3xl p-7 sm:p-8 flex flex-col justify-between space-y-7 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(15,23,42,0.8)] group">
+                <div className="space-y-5">
+                  <div className="inline-block bg-purple-500/20 text-purple-300 text-[11px] font-extrabold px-3 py-1 rounded-lg border border-purple-500/30 tracking-wide">
                     FRANCHISE & MULTI-CABANG
                   </div>
                   <div>
@@ -869,13 +883,17 @@ export default function WebDashboard() {
                     <p className="text-xs text-slate-400 mt-1 leading-relaxed">Untuk pemilik banyak cabang toko dengan laporan omzet konsolidasi terpusat.</p>
                   </div>
 
-                  {/* Blok Harga */}
-                  <div className="pt-2 pb-1 space-y-1">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-black text-white">Mulai Rp 4.9jt</span>
-                      <span className="text-xs text-slate-400 font-medium">/ sesuai skala cabang</span>
+                  {/* Nominal Harga Rapi Bertingkat */}
+                  <div className="space-y-2 pt-1">
+                    <div>
+                      <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                        Mulai Rp 4.900.000
+                      </div>
+                      <div className="text-xs text-purple-300 font-semibold mt-1">
+                        Sesuai Jumlah Cabang & Skala Bisnis
+                      </div>
                     </div>
-                    <div className="bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-bold p-2.5 rounded-xl leading-relaxed">
+                    <div className="bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-bold p-3 rounded-2xl leading-relaxed">
                       ☁️ <b>Dedicated:</b> Server Database Cloud Mandiri & Setup Private Gateway!
                     </div>
                   </div>
@@ -894,7 +912,7 @@ export default function WebDashboard() {
                   href="https://wa.me/6285163193387?text=Halo%20NataPOS,%20saya%20ingin%20konsultasi%20Kustomisasi%20Multi-Cabang%20/%20Franchise."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-sm"
+                  className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-2xl text-xs transition duration-200 border border-slate-700 block shadow-md"
                 >
                   Konsultasi Khusus Franchise
                 </a>
@@ -903,13 +921,13 @@ export default function WebDashboard() {
             </div>
 
             {/* KOTAK TRANSPARANSI KEBIJAKAN BIAYA */}
-            <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-3xl max-w-4xl mx-auto text-center space-y-2 text-xs text-slate-400 shadow-xl">
+            <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/90 p-6 sm:p-8 rounded-3xl max-w-4xl mx-auto text-center space-y-2 text-xs text-slate-400 shadow-2xl">
               <p className="font-extrabold text-slate-200 text-sm flex items-center justify-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" /> Transparansi & Jaminan Kepemilikan Software:
               </p>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed max-w-3xl mx-auto">
                 Software kasir desktop NATA POS berstatus <b>Beli-Putus (Hak Milik Seumur Hidup)</b> dan tetap dapat digunakan transaksi offline selamanya tanpa biaya sewa aplikasi. 
-                Layanan Cloud Web Dashboard HP & WhatsApp Gateway gratis selama 1 tahun pertama. Perpanjangan server cloud di tahun ke-2 sangat terjangkau (hanya Rp 250.000 – Rp 350.000 / tahun). Jika tidak diperpanjang, aplikasi kasir desktop tetap aktif 100% selamanya.
+                Layanan Cloud Web Dashboard & WhatsApp Gateway gratis selama 1 tahun pertama. Perpanjangan server cloud di tahun ke-2 sangat terjangkau (hanya Rp 250.000 – Rp 350.000 / tahun). Jika tidak diperpanjang, aplikasi kasir desktop tetap aktif 100% selamanya.
               </p>
             </div>
           </div>
