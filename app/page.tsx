@@ -965,7 +965,7 @@ export default function WebDashboard() {
 
               <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
                 <div className="text-emerald-400 font-bold text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Auto-Backup & Keamanan Tinggi</div>
-                <p className="text-slate-400">Database lokal otomatis dicadangkan setiap hari dengan proteksi anti-manipulasi jam komputer (Anti-Rollback Protection).</p>
+                <p className="text-slate-400">Database lokal dan cloud otomatis dicadangkan setiap hari sehingga data terlindungi dari berbagai macam skenario gangguan.</p>
               </div>
 
               <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2.5">
