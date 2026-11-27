@@ -107,8 +107,12 @@ export default function WebDashboard() {
 
   // Editing State
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState<string>('');
+  const [editUnitType, setEditUnitType] = useState<string>('PCS');
+  const [editCost, setEditCost] = useState<number>(0);
   const [editPrice, setEditPrice] = useState<number>(0);
   const [editDiscount, setEditDiscount] = useState<number>(0);
+  const [editStock, setEditStock] = useState<number>(0);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   // Add Product Modal
@@ -503,18 +507,36 @@ export default function WebDashboard() {
   };
 
   const handleSavePrice = async (productId: string) => {
+    if (!editName.trim()) {
+      alert('Nama produk tidak boleh kosong!');
+      return;
+    }
+    if (editPrice < 0 || editCost < 0 || editStock < 0) {
+      alert('Harga, modal, dan stok tidak boleh bernilai negatif!');
+      return;
+    }
     try {
       const { error } = await supabase
         .from('cloud_products')
-        .update({ price: editPrice, discount: editDiscount, updated_at: new Date().toISOString() })
+        .update({
+          name: editName.trim(),
+          unit_type: editUnitType.toUpperCase(),
+          cost_price: Math.round(editCost),
+          price: Math.round(editPrice),
+          discount: Math.max(0, Math.min(100, Math.round(editDiscount))),
+          stock: Number(editStock),
+          updated_at: new Date().toISOString()
+        })
         .eq('id', productId)
         .eq('store_id', storeId);
 
       if (!error) {
-        setSaveSuccessMsg('Harga berhasil diubah! Kasir otomatis terupdate.');
+        setSaveSuccessMsg('Data produk & stok berhasil diperbarui! Kasir otomatis tersinkron.');
         setEditingId(null);
         fetchData();
         setTimeout(() => setSaveSuccessMsg(''), 4000);
+      } else {
+        alert('Gagal menyimpan perubahan: ' + error.message);
       }
     } catch (err: any) {
       alert('Gagal: ' + err.message);
@@ -1508,17 +1530,62 @@ export default function WebDashboard() {
                     {filteredProducts.map((p) => {
                       const isEditing = editingId === p.id;
                       return (
-                        <tr key={p.id} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 font-mono text-slate-600">{p.barcode}</td>
-                          <td className="px-4 py-3 font-bold text-slate-900">{p.name}</td>
-                          <td className="px-4 py-3 font-semibold text-slate-600">{p.unit_type}</td>
-                          <td className="px-4 py-3 text-right text-slate-500">Rp {Number(p.cost_price).toLocaleString()}</td>
+                        <tr key={p.id} className={isEditing ? "bg-indigo-50/40" : "hover:bg-slate-50"}>
+                          <td className="px-4 py-3 font-mono text-slate-500">
+                            <span title="Barcode adalah kunci sinkronisasi dan tidak dapat diubah">{p.barcode}</span>
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-900">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                className="w-44 px-2 py-1 border border-indigo-500 rounded font-bold text-slate-900 bg-white"
+                                placeholder="Nama Produk"
+                              />
+                            ) : (
+                              p.name
+                            )}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-slate-600">
+                            {isEditing ? (
+                              <select
+                                value={editUnitType}
+                                onChange={(e) => setEditUnitType(e.target.value)}
+                                className="px-2 py-1 border border-indigo-500 rounded font-semibold bg-white text-slate-700"
+                              >
+                                <option value="PCS">PCS</option>
+                                <option value="LEMBAR">LEMBAR</option>
+                                <option value="BUKU">BUKU</option>
+                                <option value="KG">KG</option>
+                                <option value="BOX">BOX</option>
+                                <option value="PACK">PACK</option>
+                                <option value="SET">SET</option>
+                                <option value="RIM">RIM</option>
+                              </select>
+                            ) : (
+                              p.unit_type
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right text-slate-500">
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                value={editCost}
+                                onChange={(e) => setEditCost(Number(e.target.value))}
+                                className="w-24 px-2 py-1 border border-indigo-500 rounded text-right bg-white text-slate-700"
+                                title="Modal / HPP"
+                              />
+                            ) : (
+                              `Rp ${Number(p.cost_price).toLocaleString()}`
+                            )}
+                          </td>
                           <td className="px-4 py-3 text-right font-bold text-indigo-600">
                             {isEditing ? (
                               <input
                                 type="number" value={editPrice}
                                 onChange={(e) => setEditPrice(Number(e.target.value))}
-                                className="w-24 px-2 py-1 border border-indigo-500 rounded text-right font-bold"
+                                className="w-24 px-2 py-1 border border-indigo-500 rounded text-right font-bold bg-white"
                               />
                             ) : (
                               `Rp ${Number(p.price).toLocaleString()}`
@@ -1529,19 +1596,28 @@ export default function WebDashboard() {
                               <input
                                 type="number" value={editDiscount}
                                 onChange={(e) => setEditDiscount(Number(e.target.value))}
-                                className="w-14 px-1 py-1 border border-indigo-500 rounded text-center"
+                                className="w-14 px-1 py-1 border border-indigo-500 rounded text-center bg-white"
                               />
                             ) : (
                               p.discount > 0 ? <span className="text-emerald-600 font-bold">{p.discount}%</span> : '-'
                             )}
                           </td>
                           <td className="px-4 py-3 text-center font-bold">
-                            {isProductLowStock(p) ? (
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                step={editUnitType === 'KG' ? '0.01' : '1'}
+                                value={editStock}
+                                onChange={(e) => setEditStock(Number(e.target.value))}
+                                className="w-20 px-2 py-1 border border-amber-500 rounded text-center font-bold bg-amber-50 text-slate-900"
+                                title="Stock Opname / Penyesuaian Stok Fisik"
+                              />
+                            ) : isProductLowStock(p) ? (
                               <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[11px] font-black border border-rose-200 inline-flex items-center gap-1">
-                                ⚠️ {p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} PCS`}
+                                ⚠️ {p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} ${p.unit_type || 'PCS'}`}
                               </span>
                             ) : (
-                              <span className="text-slate-700">{p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} PCS`}</span>
+                              <span className="text-slate-700">{p.unit_type === 'KG' ? `${Number(p.stock)} KG` : `${p.stock} ${p.unit_type || 'PCS'}`}</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -1559,11 +1635,15 @@ export default function WebDashboard() {
                                 <button
                                   onClick={() => {
                                     setEditingId(p.id);
-                                    setEditPrice(Number(p.price));
+                                    setEditName(String(p.name || ''));
+                                    setEditUnitType(String(p.unit_type || 'PCS').toUpperCase());
+                                    setEditCost(Number(p.cost_price || 0));
+                                    setEditPrice(Number(p.price || 0));
                                     setEditDiscount(Number(p.discount || 0));
+                                    setEditStock(Number(p.stock || 0));
                                   }}
                                   className="bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 px-2 py-1 rounded font-bold flex items-center gap-1 text-xs border border-slate-200"
-                                  title="Edit Harga / Diskon"
+                                  title="Edit Produk & Opname Stok"
                                 >
                                   <Edit3 className="w-3 h-3" /> Edit
                                 </button>
