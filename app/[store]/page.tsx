@@ -174,9 +174,9 @@ export default function StoreDashboardPage() {
         supabase.from('cloud_products').select('*').eq('store_id', storeId).eq('is_deleted', 0).order('name', { ascending: true }),
         supabase.from('cloud_orders_jasa').select('*').eq('store_id', storeId).order('tgl_order', { ascending: false }),
         supabase.from('cloud_expenses').select('*').eq('store_id', storeId).order('created_at', { ascending: false }).limit(30),
-        supabase.from('cloud_transactions').select('total_amount, created_at').eq('store_id', storeId).gte('created_at', sevenDaysAgo),
-        supabase.from('cloud_transactions').select('total_amount, total_cost').eq('store_id', storeId).gte('created_at', monthStart),
-        supabase.from('cloud_expenses').select('amount').eq('store_id', storeId).neq('category', 'RESTOCK').neq('category', 'KAS_MASUK').neq('category', 'TAMBAH_MODAL').gte('created_at', monthStart)
+        supabase.from('cloud_transactions').select('total_amount, created_at').eq('store_id', storeId).neq('payment_method', 'VOID').gte('created_at', sevenDaysAgo),
+        supabase.from('cloud_transactions').select('total_amount, total_cost').eq('store_id', storeId).neq('payment_method', 'VOID').gte('created_at', monthStart),
+        supabase.from('cloud_expenses').select('amount').eq('store_id', storeId).not('category', 'in', '("RESTOCK","KAS_MASUK","TAMBAH_MODAL","PELUNASAN_PIUTANG","VOID_TRANSAKSI")').gte('created_at', monthStart)
       ]);
 
       if (storeRes.data) {
@@ -287,8 +287,8 @@ export default function StoreDashboardPage() {
   const fetchFinanceData = async (period: string, customStart = customStartDate, customEnd = customEndDate) => {
     if (!storeId) return;
     try {
-      let trxQuery = supabase.from('cloud_transactions').select('total_amount, total_cost, created_at').eq('store_id', storeId);
-      let expQuery = supabase.from('cloud_expenses').select('amount, category, created_at').eq('store_id', storeId).neq('category', 'RESTOCK').neq('category', 'KAS_MASUK').neq('category', 'TAMBAH_MODAL');
+      let trxQuery = supabase.from('cloud_transactions').select('total_amount, total_cost, created_at').eq('store_id', storeId).neq('payment_method', 'VOID');
+      let expQuery = supabase.from('cloud_expenses').select('amount, category, created_at').eq('store_id', storeId).not('category', 'in', '("RESTOCK","KAS_MASUK","TAMBAH_MODAL","PELUNASAN_PIUTANG","VOID_TRANSAKSI")');
 
       const now = new Date();
       let startFilter = '';
@@ -343,6 +343,10 @@ export default function StoreDashboardPage() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_expenses', filter: `store_id=eq.${storeId}` }, () => {
           clearTimeout((window as any).__refreshTimer);
           (window as any).__refreshTimer = setTimeout(() => fetchData(), 250);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cloud_products', filter: `store_id=eq.${storeId}` }, () => {
+          clearTimeout((window as any).__refreshTimer);
+          (window as any).__refreshTimer = setTimeout(() => fetchData(), 400);
         })
         .subscribe();
 
